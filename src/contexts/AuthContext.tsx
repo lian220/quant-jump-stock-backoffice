@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       return {};
-    } catch (_error) {
+    } catch {
       return { error: '로그인 중 오류가 발생했습니다' };
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       return {};
-    } catch (_error) {
+    } catch {
       return { error: '회원가입 중 오류가 발생했습니다' };
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       return {};
-    } catch (_error) {
+    } catch {
       return { error: 'Google 로그인 중 오류가 발생했습니다' };
     } finally {
       setLoading(false);
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       return {};
-    } catch (_error) {
+    } catch {
       return { error: '카카오 로그인 중 오류가 발생했습니다' };
     } finally {
       setLoading(false);
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       return {};
-    } catch (_error) {
+    } catch {
       return { error: '비밀번호 재설정 중 오류가 발생했습니다' };
     }
   };

@@ -31,44 +31,44 @@ export const MetaTags: React.FC<SEOProps> = ({
     return title;
   };
 
-  // canonical URL 생성
-  const getCanonicalUrl = () => {
-    if (meta.canonical) {
-      return meta.canonical.startsWith('http')
-        ? meta.canonical
-        : `${seoConfig.siteUrl}${meta.canonical}`;
-    }
-    return undefined;
-  };
-
-  // robots meta 생성
-  const getRobotsMeta = () => {
-    const robots = [];
-    if (noindex) robots.push('noindex');
-    if (nofollow) robots.push('nofollow');
-    if (meta.robots) robots.push(meta.robots);
-    return robots.length > 0 ? robots.join(', ') : 'index, follow';
-  };
-
-  // Open Graph URL 생성
-  const getOpenGraphUrl = () => {
-    return (
-      openGraph?.url || (typeof window !== 'undefined' ? window.location.href : seoConfig.siteUrl)
-    );
-  };
-
-  // Open Graph 이미지 URL 생성
-  const getOpenGraphImage = () => {
-    if (openGraph?.image) {
-      return openGraph.image.startsWith('http')
-        ? openGraph.image
-        : `${seoConfig.siteUrl}${openGraph.image}`;
-    }
-    return `${seoConfig.siteUrl}${seoConfig.defaultImage}`;
-  };
-
   useEffect(() => {
     if (typeof document === 'undefined') return;
+
+    // canonical URL 생성
+    const getCanonicalUrl = () => {
+      if (meta.canonical) {
+        return meta.canonical.startsWith('http')
+          ? meta.canonical
+          : `${seoConfig.siteUrl}${meta.canonical}`;
+      }
+      return undefined;
+    };
+
+    // robots meta 생성
+    const getRobotsMeta = () => {
+      const robots = [];
+      if (noindex) robots.push('noindex');
+      if (nofollow) robots.push('nofollow');
+      if (meta.robots) robots.push(meta.robots);
+      return robots.length > 0 ? robots.join(', ') : 'index, follow';
+    };
+
+    // Open Graph URL 생성
+    const getOpenGraphUrl = () => {
+      return (
+        openGraph?.url || (typeof window !== 'undefined' ? window.location.href : seoConfig.siteUrl)
+      );
+    };
+
+    // Open Graph 이미지 URL 생성
+    const getOpenGraphImage = () => {
+      if (openGraph?.image) {
+        return openGraph.image.startsWith('http')
+          ? openGraph.image
+          : `${seoConfig.siteUrl}${openGraph.image}`;
+      }
+      return `${seoConfig.siteUrl}${seoConfig.defaultImage}`;
+    };
 
     // 동적으로 메타태그 업데이트 (App Router에서는 이 방식 사용)
 
@@ -140,7 +140,7 @@ export const MetaTags: React.FC<SEOProps> = ({
       });
 
       // 새로운 JSON-LD 추가
-      structuredData.forEach((data, index) => {
+      structuredData.forEach((data) => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic', 'true');
