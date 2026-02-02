@@ -44,7 +44,7 @@ interface Payment {
   plan: 'basic' | 'premium' | 'enterprise';
   amount: number;
   status: 'completed' | 'pending' | 'failed' | 'refunded';
-  method: 'card' | 'transfer' | 'kakao' | 'toss';
+  method: 'card' | 'transfer' | 'kakao' | 'naver';
   createdAt: string;
 }
 
@@ -101,7 +101,7 @@ const mockPayments: Payment[] = [
     plan: 'basic',
     amount: 29000,
     status: 'failed',
-    method: 'toss',
+    method: 'naver',
     createdAt: '2024-01-19 16:20',
   },
   {
@@ -161,7 +161,7 @@ const methodConfig = {
   card: { label: '신용카드' },
   transfer: { label: '계좌이체' },
   kakao: { label: '카카오페이' },
-  toss: { label: '토스페이' },
+  naver: { label: '네이버페이' },
 };
 
 export default function PaymentsPage() {

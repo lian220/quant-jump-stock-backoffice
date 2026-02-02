@@ -13,6 +13,7 @@ import {
   Database,
   LogOut,
   ChevronRight,
+  CreditCard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: Users, label: '회원 관리', href: '/dashboard/users' },
   { icon: TrendingUp, label: '종목 추천', href: '/dashboard/recommendations' },
   { icon: LineChart, label: '분석 현황', href: '/dashboard/analytics' },
+  { icon: CreditCard, label: '결제 관리', href: '/dashboard/payments' },
   { icon: Bell, label: '알림 관리', href: '/dashboard/notifications' },
   { icon: Database, label: '데이터 관리', href: '/dashboard/data' },
   { icon: Settings, label: '설정', href: '/dashboard/settings' },
