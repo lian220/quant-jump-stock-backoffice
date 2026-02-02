@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface StatCardProps {
@@ -12,6 +11,7 @@ interface StatCardProps {
   changeLabel?: string;
   icon: LucideIcon;
   iconColor?: string;
+  iconBgColor?: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -20,32 +20,48 @@ export const StatCard: React.FC<StatCardProps> = ({
   change,
   changeLabel = '지난 달 대비',
   icon: Icon,
-  iconColor = 'text-primary',
+  iconColor = 'text-emerald-600',
+  iconBgColor = 'bg-emerald-100',
 }) => {
   const isPositive = change && change > 0;
   const isNegative = change && change < 0;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className={cn('h-4 w-4', iconColor)} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+      {/* Background decoration */}
+      <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-slate-50 transition-transform group-hover:scale-150" />
+
+      <div className="relative">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">{title}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+          </div>
+          <div className={cn('rounded-xl p-3', iconBgColor)}>
+            <Icon className={cn('h-6 w-6', iconColor)} />
+          </div>
+        </div>
+
         {change !== undefined && (
-          <p className="mt-1 flex items-center text-xs text-muted-foreground">
-            {isPositive && <TrendingUp className="mr-1 h-3 w-3 text-green-500" />}
-            {isNegative && <TrendingDown className="mr-1 h-3 w-3 text-red-500" />}
-            <span className={cn(isPositive && 'text-green-500', isNegative && 'text-red-500')}>
+          <div className="mt-4 flex items-center gap-2">
+            <div
+              className={cn(
+                'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+                isPositive && 'bg-green-100 text-green-700',
+                isNegative && 'bg-red-100 text-red-700',
+                !isPositive && !isNegative && 'bg-slate-100 text-slate-600',
+              )}
+            >
+              {isPositive && <TrendingUp className="h-3 w-3" />}
+              {isNegative && <TrendingDown className="h-3 w-3" />}
               {isPositive && '+'}
               {change}%
-            </span>
-            <span className="ml-1">{changeLabel}</span>
-          </p>
+            </div>
+            <span className="text-xs text-slate-400">{changeLabel}</span>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
