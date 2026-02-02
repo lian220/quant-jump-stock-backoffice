@@ -1,10 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AuthContextType, AuthUser, mapSupabaseUser } from '@/types/auth';
-import { supabase } from '@/lib/supabase';
+import { AuthContextType, AuthUser, LoginResponse } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// 백엔드 API URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -22,74 +24,100 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // 현재 세션 확인 (에러 처리 추가)
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        setUser(mapSupabaseUser(session?.user ?? null));
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Supabase 세션 확인 오류:', error);
-        setUser(null);
-        setLoading(false);
-      });
-
-    // 인증 상태 변화 감지 (에러 처리 추가)
-    try {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(mapSupabaseUser(session?.user ?? null));
-        setLoading(false);
-      });
-
-      return () => subscription.unsubscribe();
-    } catch (_error) {
-      console.error('Supabase 인증 상태 감지 오류:', _error);
-      setLoading(false);
+  // 토큰 저장/조회 헬퍼
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('auth_token');
     }
-  }, []);
+    return null;
+  };
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        return { error: error.message };
+  const setToken = (token: string | null) => {
+    if (typeof window !== 'undefined') {
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      } else {
+        localStorage.removeItem('auth_token');
       }
-
-      return {};
-    } catch {
-      return { error: '로그인 중 오류가 발생했습니다' };
-    } finally {
-      setLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+  // 초기 로드 시 토큰 검증
+  useEffect(() => {
+    const validateSession = async () => {
+      const token = getToken();
 
-      if (error) {
-        return { error: error.message };
+      if (!token) {
+        setLoading(false);
+        return;
       }
 
-      return {};
-    } catch {
-      return { error: '회원가입 중 오류가 발생했습니다' };
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data: LoginResponse = await response.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+          } else {
+            setToken(null);
+            setUser(null);
+          }
+        } else {
+          setToken(null);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('세션 검증 오류:', error);
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateSession();
+  }, []);
+
+  const signIn = async (userId: string, password: string) => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, password }),
+      });
+
+      const data: LoginResponse = await response.json();
+
+      if (!response.ok) {
+        return { error: data.error || '로그인에 실패했습니다' };
+      }
+
+      if (data.success && data.token && data.user) {
+        // 관리자 권한 확인
+        if (data.user.role !== 'ADMIN') {
+          return { error: '관리자 권한이 필요합니다' };
+        }
+
+        setToken(data.token);
+        setUser(data.user);
+        return {};
+      }
+
+      return { error: data.error || '로그인에 실패했습니다' };
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      return { error: '서버 연결에 실패했습니다' };
     } finally {
       setLoading(false);
     }
@@ -98,71 +126,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     try {
       setLoading(true);
-      await supabase.auth.signOut();
-    } catch (_error) {
-      console.error('로그아웃 오류:', _error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const token = getToken();
 
-  const signInWithGoogle = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        return { error: error.message };
+      if (token) {
+        await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
       }
-
-      return {};
-    } catch {
-      return { error: 'Google 로그인 중 오류가 발생했습니다' };
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
     } finally {
+      setToken(null);
+      setUser(null);
       setLoading(false);
-    }
-  };
-
-  const signInWithKakao = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'kakao',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        return { error: error.message };
-      }
-
-      return {};
-    } catch {
-      return { error: '카카오 로그인 중 오류가 발생했습니다' };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
-
-      if (error) {
-        return { error: error.message };
-      }
-
-      return {};
-    } catch {
-      return { error: '비밀번호 재설정 중 오류가 발생했습니다' };
     }
   };
 
@@ -170,11 +150,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     loading,
     signIn,
-    signUp,
     signOut,
-    signInWithGoogle,
-    signInWithKakao,
-    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

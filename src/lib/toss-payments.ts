@@ -7,13 +7,9 @@ import {
   PaymentStatus,
 } from '@/types/payment';
 
-// 환경변수 확인
-const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+// 환경변수 확인 (빌드 시 fallback 제공)
+const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_placeholder';
 const API_BASE_URL = 'https://api.tosspayments.com/v1';
-
-if (!CLIENT_KEY) {
-  throw new Error('NEXT_PUBLIC_TOSS_CLIENT_KEY is required');
-}
 
 // TossPayments SDK 타입 정의
 declare global {

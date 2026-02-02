@@ -4,7 +4,17 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const recentPayments = [
+type PaymentStatus = 'completed' | 'pending' | 'failed';
+
+interface RecentPayment {
+  id: string;
+  user: string;
+  amount: number;
+  status: PaymentStatus;
+  date: string;
+}
+
+const recentPayments: RecentPayment[] = [
   {
     id: '1',
     user: 'user1@example.com',

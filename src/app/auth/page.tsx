@@ -1,51 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
-import { LoginForm, SignUpForm } from '@/components/auth';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
+import { LoginForm } from '@/components/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { PageSEO } from '@/components/seo';
-import { pageDefaults } from '@/lib/seo/config';
+import { TrendingUp } from 'lucide-react';
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
 
-  // 이미 로그인된 경우 홈으로 리디렉션
   React.useEffect(() => {
     if (user) {
-      router.push('/');
+      router.push('/dashboard');
     }
   }, [user, router]);
 
   const handleAuthSuccess = () => {
-    router.push('/');
+    router.push('/dashboard');
   };
 
   if (user) {
-    return <div>리디렉션 중...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-900">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
   }
 
   return (
-    <>
-      {/* SEO 메타태그 */}
-      <PageSEO
-        title={pageDefaults.auth.title}
-        description={pageDefaults.auth.description}
-        keywords={pageDefaults.auth.keywords}
-        ogImage="/images/og/auth.jpg"
-      />
+    <div className="flex min-h-screen">
+      {/* Left Panel - Branding */}
+      <div className="hidden w-1/2 flex-col justify-between bg-slate-900 p-12 lg:flex">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+            <TrendingUp className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-xl font-bold text-white">Quant Jump Stock</span>
+        </div>
 
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          {isLogin ? (
-            <LoginForm onSuccess={handleAuthSuccess} onSwitchToSignUp={() => setIsLogin(false)} />
-          ) : (
-            <SignUpForm onSuccess={handleAuthSuccess} onSwitchToLogin={() => setIsLogin(true)} />
-          )}
+        <div>
+          <h1 className="mb-4 text-4xl font-bold text-white">
+            주식 종목 추천 &<br />
+            자동 매매 시스템
+          </h1>
+          <p className="text-lg text-slate-400">
+            AI 기반 퀀트 분석으로 최적의 투자 전략을 제공하는
+            <br />
+            관리자 백오피스 시스템입니다.
+          </p>
+        </div>
+
+        <p className="text-sm text-slate-500">
+          &copy; {new Date().getFullYear()} Quant Jump Stock. All rights reserved.
+        </p>
+      </div>
+
+      {/* Right Panel - Login Form */}
+      <div className="flex w-full items-center justify-center bg-slate-50 px-8 py-12 lg:w-1/2">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
+              <TrendingUp className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xl font-bold text-slate-900">QJS Admin</span>
+          </div>
+
+          <LoginForm onSuccess={handleAuthSuccess} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

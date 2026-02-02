@@ -62,7 +62,7 @@ export const RevenueChart: React.FC = () => {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
                 }}
-                formatter={(value: number) => [`₩${value.toLocaleString()}`, '매출']}
+                formatter={(value) => [`₩${Number(value).toLocaleString()}`, '매출']}
               />
               <Area
                 type="monotone"
