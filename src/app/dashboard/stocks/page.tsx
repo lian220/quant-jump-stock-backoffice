@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Plus, Edit2, Trash2, Shield, RefreshCw, Loader2, X } from 'lucide-react';
 import { Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
@@ -59,6 +59,8 @@ export default function StocksPage() {
 
   // 필터
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceRef = useRef<NodeJS.Timeout>(null);
   const [marketFilter, setMarketFilter] = useState<string>('all');
 
   // 페이지네이션
@@ -85,13 +87,29 @@ export default function StocksPage() {
     reason: '',
   });
 
+  // 검색어 디바운스 (300ms)
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setPage(0);
+    }, 300);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   const loadStocks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const response = await getStocks({
-        query: searchQuery || undefined,
+        query: debouncedQuery || undefined,
         market: marketFilter !== 'all' ? (marketFilter as Market) : undefined,
         page,
         size: 20,
@@ -106,7 +124,7 @@ export default function StocksPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, marketFilter, page]);
+  }, [debouncedQuery, marketFilter, page]);
 
   useEffect(() => {
     loadStocks();
@@ -252,7 +270,9 @@ export default function StocksPage() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">한국 시장</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                한국 시장 (현재 페이지)
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
@@ -262,7 +282,9 @@ export default function StocksPage() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">미국 시장</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                미국 시장 (현재 페이지)
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-600">
@@ -272,7 +294,9 @@ export default function StocksPage() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">ETF</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                ETF (현재 페이지)
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-violet-600">
@@ -311,10 +335,7 @@ export default function StocksPage() {
                 <Input
                   placeholder="종목 코드 또는 이름으로 검색..."
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(0);
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                 />
               </div>
@@ -446,7 +467,9 @@ export default function StocksPage() {
             {/* 페이지네이션 */}
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {page * 20 + 1}-{Math.min((page + 1) * 20, totalElements)} / 총 {totalElements}개
+                {totalElements === 0
+                  ? '0개'
+                  : `${page * 20 + 1}-${Math.min((page + 1) * 20, totalElements)} / 총 ${totalElements}개`}
               </p>
               <div className="flex gap-2">
                 <Button

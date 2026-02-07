@@ -1,16 +1,19 @@
 # Backoffice 테스트 규칙
 
 ## 실행 환경
+
 - **개발 테스트**: `pnpm dev` (핫 리로드, 코드 수정 즉시 반영)
-- **통합 테스트**: Docker 재빌드 (`./start.sh --build-backoffice`)
+- **통합 테스트**: Docker 재빌드 (`./start.sh --build`)
 - 통합 시작: 루트에서 `./start.sh --dev --build` (Backend Docker + Backoffice 핫 리로드)
 
 ## 테스트 절차
-1. **테스트 플랜 작성**: `docs/testing/{기능명}-test-plan.md` 에 작성
+
+1. **테스트 플랜 작성**: 테스트 전 플랜 문서 작성
 2. **E2E 화면 테스트 필수**: Playwright MCP로 http://localhost:4000 에서 실제 브라우저 검증
-3. **테스트 결과 보고**: 완료 후 사용자에게 결과 보고 + `docs/testing/{기능명}-test-results.md` 작성
+3. **테스트 결과 보고**: 완료 후 사용자에게 결과 보고 + 결과 문서 작성
 
 ## E2E 테스트 대상 페이지
+
 | 페이지 | 경로 | 검증 항목 |
 |--------|------|-----------|
 | 대시보드 | `/dashboard` | 렌더링, 통계 로드 |
@@ -25,6 +28,7 @@
 | 설정 | `/dashboard/settings` | 설정 변경 |
 
 ## 로그 확인
+
 ```bash
 # 핫 리로드 모드 로그
 tail -f .logs/backoffice.log

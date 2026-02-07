@@ -30,6 +30,17 @@ export type RebalanceFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 
 export type StockSelectionType = 'SCREENING' | 'PORTFOLIO';
 
 /**
+ * 포트폴리오 종목 항목 (new/edit 페이지 공유)
+ */
+export interface PortfolioItem {
+  id: string;
+  assetClass: string;
+  name: string;
+  ticker: string;
+  weight: number;
+}
+
+/**
  * 전략 요약 (목록용)
  */
 export interface StrategySummary {

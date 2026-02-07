@@ -19,6 +19,12 @@ interface RequestConfig extends RequestInit {
 export const tokenStorage = {
   getToken: (): string | null => {
     if (typeof window === 'undefined') return null;
+    // 이전 키(backoffice_token)에서 마이그레이션
+    const legacy = localStorage.getItem('backoffice_token');
+    if (legacy) {
+      localStorage.setItem('auth_token', legacy);
+      localStorage.removeItem('backoffice_token');
+    }
     return localStorage.getItem('auth_token');
   },
   setToken: (token: string): void => {

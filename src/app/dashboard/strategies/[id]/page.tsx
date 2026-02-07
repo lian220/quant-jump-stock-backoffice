@@ -83,7 +83,7 @@ export default function StrategyDetailPage() {
           setDefaultStocks(stocksData.stocks);
           setDefaultStocksTotalWeight(stocksData.totalWeight);
         } catch {
-          // 기본 종목 조회 실패 시 fallback으로 conditions에서 파싱
+          // 기본 종목 조회 실패 시 빈 목록으로 처리
           setDefaultStocks([]);
         }
       }
@@ -348,7 +348,7 @@ export default function StrategyDetailPage() {
                       <TableCell
                         className={`text-right ${Math.abs(defaultStocksTotalWeight - 100) < 0.01 ? 'text-green-600' : 'text-orange-500'}`}
                       >
-                        {defaultStocksTotalWeight}%
+                        {defaultStocksTotalWeight.toFixed(2)}%
                       </TableCell>
                       <TableCell />
                     </TableRow>

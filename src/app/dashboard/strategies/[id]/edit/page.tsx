@@ -26,6 +26,7 @@ import {
   type StrategyStatus,
   type RebalanceFrequency,
   type StockSelectionType,
+  type PortfolioItem,
   categoryOptions,
   rebalanceOptions,
   stockSelectionTypeOptions,
@@ -54,15 +55,16 @@ export default function EditStrategyPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 포트폴리오 종목 상태
-  interface PortfolioItem {
-    assetClass: string;
-    name: string;
-    ticker: string;
-    weight: number;
-  }
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
-    { assetClass: '', name: '', ticker: '', weight: 0 },
+    { id: crypto.randomUUID(), assetClass: '', name: '', ticker: '', weight: 0 },
   ]);
+
+  // PORTFOLIO → SCREENING 전환 시 stale conditions 초기화
+  useEffect(() => {
+    if (formData.stockSelectionType !== 'PORTFOLIO' && strategy) {
+      setFormData((prev) => ({ ...prev, conditions: '{}' }));
+    }
+  }, [formData.stockSelectionType, strategy]);
 
   // 포트폴리오 종목 → conditions JSON 동기화
   useEffect(() => {
@@ -84,7 +86,10 @@ export default function EditStrategyPage() {
   }, [portfolioItems, formData.stockSelectionType]);
 
   const addPortfolioItem = () => {
-    setPortfolioItems([...portfolioItems, { assetClass: '', name: '', ticker: '', weight: 0 }]);
+    setPortfolioItems([
+      ...portfolioItems,
+      { id: crypto.randomUUID(), assetClass: '', name: '', ticker: '', weight: 0 },
+    ]);
   };
 
   const removePortfolioItem = (index: number) => {
@@ -131,8 +136,13 @@ export default function EditStrategyPage() {
           if (parsed.allocation && typeof parsed.allocation === 'object') {
             const items = Object.entries(parsed.allocation).map(
               ([ticker, info]: [string, unknown]) => {
-                const d = info as { name?: string; assetClass?: string; weight?: number };
+                const d = info as {
+                  name?: string;
+                  assetClass?: string;
+                  weight?: number;
+                };
                 return {
+                  id: crypto.randomUUID(),
                   ticker,
                   name: d.name || ticker,
                   assetClass: d.assetClass || '',
@@ -173,6 +183,13 @@ export default function EditStrategyPage() {
         JSON.parse(formData.conditions);
       } catch {
         newErrors.conditions = '올바른 JSON 형식이 아닙니다.';
+      }
+    }
+
+    // 포트폴리오 비중 합계 검증
+    if (formData.stockSelectionType === 'PORTFOLIO') {
+      if (Math.abs(totalWeight - 100) >= 0.01) {
+        newErrors.portfolio = '포트폴리오 비중 합계가 100%여야 합니다.';
       }
     }
 
@@ -394,7 +411,7 @@ export default function EditStrategyPage() {
                   <CardContent>
                     <div className="space-y-3">
                       {portfolioItems.map((item, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                        <div key={item.id} className="flex items-center gap-2">
                           <Input
                             placeholder="자산군"
                             value={item.assetClass}
@@ -441,7 +458,7 @@ export default function EditStrategyPage() {
                     <div
                       className={`mt-3 text-right text-sm font-semibold ${Math.abs(totalWeight - 100) < 0.01 ? 'text-green-600' : 'text-orange-500'}`}
                     >
-                      합계: {totalWeight}%
+                      합계: {totalWeight.toFixed(2)}%
                       {Math.abs(totalWeight - 100) >= 0.01 && ' (100%가 되어야 합니다)'}
                     </div>
                   </CardContent>
