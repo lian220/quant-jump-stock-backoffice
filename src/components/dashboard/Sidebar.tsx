@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -42,11 +43,15 @@ export const Sidebar: React.FC = () => {
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-20 items-center gap-3 px-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/20">
-            <TrendingUp className="h-6 w-6 text-white" />
-          </div>
+          <Image
+            src="/main_logo.png"
+            alt="Alpha Foundry Logo"
+            width={44}
+            height={44}
+            className="rounded-xl"
+          />
           <div>
-            <h1 className="text-lg font-bold text-white">Quant Jump</h1>
+            <h1 className="text-lg font-bold text-white">Alpha Foundry</h1>
             <p className="text-xs text-slate-500">Admin Console</p>
           </div>
         </div>

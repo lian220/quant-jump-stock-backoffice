@@ -4,7 +4,8 @@ import React from 'react';
 import { LoginForm } from '@/components/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { TrendingUp, BarChart3, Shield, Zap } from 'lucide-react';
+import Image from 'next/image';
+import { BarChart3, Shield, Zap, TrendingUp } from 'lucide-react';
 
 export default function AuthPage() {
   const { user } = useAuth();
@@ -49,11 +50,15 @@ export default function AuthPage() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30">
-              <TrendingUp className="h-7 w-7 text-white" />
-            </div>
+            <Image
+              src="/main_logo.png"
+              alt="Alpha Foundry Logo"
+              width={48}
+              height={48}
+              className="rounded-2xl"
+            />
             <div>
-              <span className="text-2xl font-bold text-white">Quant Jump Stock</span>
+              <span className="text-2xl font-bold text-white">Alpha Foundry</span>
               <span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">
                 Admin
               </span>
@@ -99,9 +104,7 @@ export default function AuthPage() {
         </div>
 
         <div className="relative z-10 flex items-center justify-between">
-          <p className="text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} Quant Jump Stock
-          </p>
+          <p className="text-sm text-slate-500">&copy; {new Date().getFullYear()} Alpha Foundry</p>
           <div className="flex gap-4">
             <span className="text-sm text-slate-500 hover:text-slate-400 cursor-pointer">
               이용약관
@@ -118,11 +121,15 @@ export default function AuthPage() {
         <div className="w-full max-w-[420px]">
           {/* Mobile Logo */}
           <div className="mb-10 flex flex-col items-center gap-4 lg:hidden">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg">
-              <TrendingUp className="h-8 w-8 text-white" />
-            </div>
+            <Image
+              src="/main_logo.png"
+              alt="Alpha Foundry Logo"
+              width={56}
+              height={56}
+              className="rounded-2xl"
+            />
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-slate-900">Quant Jump Stock</h1>
+              <h1 className="text-2xl font-bold text-slate-900">Alpha Foundry</h1>
               <p className="text-sm text-slate-500">관리자 로그인</p>
             </div>
           </div>
