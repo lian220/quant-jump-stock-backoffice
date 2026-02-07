@@ -34,11 +34,15 @@ import {
 import {
   getStrategyDetail,
   deleteStrategy,
+  getDefaultStocks,
   type StrategyDetailResponse,
   type StrategyStatus,
+  type DefaultStockResponse,
   statusLabels,
   statusVariants,
   rebalanceOptions,
+  stockSelectionTypeLabels,
+  type StockSelectionType,
 } from '@/lib/api';
 
 // 카테고리 색상
@@ -48,7 +52,7 @@ const categoryColors: Record<string, string> = {
   ASSET_ALLOCATION: 'text-purple-500',
   QUANT_COMPOSITE: 'text-cyan-500',
   SEASONAL: 'text-orange-500',
-  CUSTOM: 'text-slate-400',
+  CUSTOM: 'text-slate-500',
   ML_PREDICTION: 'text-pink-500',
 };
 
@@ -58,6 +62,8 @@ export default function StrategyDetailPage() {
   const strategyId = Number(params.id);
 
   const [strategy, setStrategy] = useState<StrategyDetailResponse | null>(null);
+  const [defaultStocks, setDefaultStocks] = useState<DefaultStockResponse[]>([]);
+  const [defaultStocksTotalWeight, setDefaultStocksTotalWeight] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -69,6 +75,18 @@ export default function StrategyDetailPage() {
     try {
       const data = await getStrategyDetail(strategyId);
       setStrategy(data);
+
+      // PORTFOLIO 타입이면 기본 종목도 조회
+      if (data.stockSelectionType === 'PORTFOLIO') {
+        try {
+          const stocksData = await getDefaultStocks(strategyId);
+          setDefaultStocks(stocksData.stocks);
+          setDefaultStocksTotalWeight(stocksData.totalWeight);
+        } catch {
+          // 기본 종목 조회 실패 시 빈 목록으로 처리
+          setDefaultStocks([]);
+        }
+      }
     } catch (err) {
       console.error('전략 조회 실패:', err);
       setError(err instanceof Error ? err.message : '전략을 불러오는 데 실패했습니다.');
@@ -161,7 +179,7 @@ export default function StrategyDetailPage() {
         <div className="mb-6 flex items-center justify-between">
           <Link
             href="/dashboard/strategies"
-            className="flex items-center gap-2 text-slate-400 hover:text-white"
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900"
           >
             <ArrowLeft className="h-4 w-4" />
             전략 목록으로 돌아가기
@@ -225,11 +243,11 @@ export default function StrategyDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="mb-6 text-slate-300">{strategy.description || '설명이 없습니다.'}</p>
+            <p className="mb-6 text-slate-600">{strategy.description || '설명이 없습니다.'}</p>
 
             {/* 통계 그리드 */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="rounded-lg bg-slate-800/50 p-4">
+            <div className="grid gap-4 md:grid-cols-5">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
                   구독자
@@ -238,7 +256,7 @@ export default function StrategyDetailPage() {
                   {strategy.subscriberCount}
                 </div>
               </div>
-              <div className="rounded-lg bg-slate-800/50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Star className="h-4 w-4" />
                   평균 평점
@@ -247,7 +265,18 @@ export default function StrategyDetailPage() {
                   {strategy.averageRating > 0 ? strategy.averageRating.toFixed(1) : '-'}
                 </div>
               </div>
-              <div className="rounded-lg bg-slate-800/50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+                <div className="text-sm text-muted-foreground">종목선정</div>
+                <div className="mt-1 text-xl font-bold">
+                  <Badge
+                    variant={strategy.stockSelectionType === 'PORTFOLIO' ? 'default' : 'secondary'}
+                  >
+                    {stockSelectionTypeLabels[strategy.stockSelectionType as StockSelectionType] ||
+                      strategy.stockSelectionType}
+                  </Badge>
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <RefreshCw className="h-4 w-4" />
                   리밸런싱
@@ -256,7 +285,7 @@ export default function StrategyDetailPage() {
                   {getRebalanceName(strategy.rebalanceFrequency)}
                 </div>
               </div>
-              <div className="rounded-lg bg-slate-800/50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   생성일
@@ -264,8 +293,71 @@ export default function StrategyDetailPage() {
                 <div className="mt-1 text-sm font-medium">{formatDate(strategy.createdAt)}</div>
               </div>
             </div>
+
+            {/* 투자 철학 */}
+            {strategy.investmentPhilosophy && (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+                <div className="text-sm font-medium text-muted-foreground">투자 철학</div>
+                <p className="mt-1 text-slate-700 whitespace-pre-wrap">
+                  {strategy.investmentPhilosophy}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* 포트폴리오 구성 테이블 (PORTFOLIO 타입일 때만) */}
+        {strategy.stockSelectionType === 'PORTFOLIO' && defaultStocks.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>포트폴리오 구성</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>종목명</TableHead>
+                      <TableHead>티커</TableHead>
+                      <TableHead>시장</TableHead>
+                      <TableHead className="text-right">비중(%)</TableHead>
+                      <TableHead>메모</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {defaultStocks.map((stock) => (
+                      <TableRow key={stock.id}>
+                        <TableCell className="font-medium">
+                          {stock.stockName}
+                          {stock.stockNameEn && (
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              ({stock.stockNameEn})
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">{stock.ticker}</TableCell>
+                        <TableCell>{stock.market}</TableCell>
+                        <TableCell className="text-right">{stock.targetWeight}%</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {stock.memo || '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-slate-50 font-semibold">
+                      <TableCell colSpan={3}>합계</TableCell>
+                      <TableCell
+                        className={`text-right ${Math.abs(defaultStocksTotalWeight - 100) < 0.01 ? 'text-green-600' : 'text-orange-500'}`}
+                      >
+                        {defaultStocksTotalWeight.toFixed(2)}%
+                      </TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* 전략 조건 카드 */}
         <Card className="mb-6">
@@ -273,7 +365,7 @@ export default function StrategyDetailPage() {
             <CardTitle>전략 조건 (JSON)</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="overflow-auto rounded-lg bg-slate-800 p-4 text-sm text-slate-300">
+            <pre className="overflow-auto rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-800">
               {JSON.stringify(JSON.parse(strategy.conditions || '{}'), null, 2)}
             </pre>
           </CardContent>

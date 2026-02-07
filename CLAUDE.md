@@ -37,6 +37,14 @@ pnpm start       # 프로덕션 실행
 pnpm lint        # 린트 검사
 ```
 
+## 테스트 규칙
+
+상세: **[TESTING_RULES.md](./TESTING_RULES.md)** 참조
+
+- 개발 테스트: `pnpm dev` (핫 리로드) / 통합: `./start.sh --dev --build`
+- 테스트 전 플랜 작성, E2E 화면 테스트 필수 (Playwright MCP)
+- 테스트 완료 후 결과 보고
+
 ## 공통 규칙 요약
 
 - TypeScript 필수
