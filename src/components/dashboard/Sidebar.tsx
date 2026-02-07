@@ -15,6 +15,7 @@ import {
   ChevronRight,
   CreditCard,
   Target,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +24,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: '대시보드', href: '/dashboard' },
   { icon: Users, label: '회원 관리', href: '/dashboard/users' },
   { icon: Target, label: '전략 관리', href: '/dashboard/strategies' },
+  { icon: BarChart3, label: '종목 관리', href: '/dashboard/stocks' },
   { icon: TrendingUp, label: '종목 추천', href: '/dashboard/recommendations' },
   { icon: LineChart, label: '분석 현황', href: '/dashboard/analytics' },
   { icon: CreditCard, label: '결제 관리', href: '/dashboard/payments' },

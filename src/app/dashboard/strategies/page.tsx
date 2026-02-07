@@ -49,6 +49,8 @@ import {
   type StrategyStatsResponse,
   statusLabels,
   statusVariants,
+  stockSelectionTypeLabels,
+  type StockSelectionType,
 } from '@/lib/api';
 
 // 상태별 아이콘 설정
@@ -80,7 +82,7 @@ const categoryColors: Record<string, string> = {
   ASSET_ALLOCATION: 'text-purple-500',
   QUANT_COMPOSITE: 'text-cyan-500',
   SEASONAL: 'text-orange-500',
-  CUSTOM: 'text-slate-400',
+  CUSTOM: 'text-slate-500',
   ML_PREDICTION: 'text-pink-500',
 };
 
@@ -376,6 +378,7 @@ export default function StrategiesPage() {
                   <TableRow>
                     <TableHead>전략명</TableHead>
                     <TableHead>카테고리</TableHead>
+                    <TableHead>종목선정</TableHead>
                     <TableHead>상태</TableHead>
                     <TableHead>작성자</TableHead>
                     <TableHead className="text-right">CAGR</TableHead>
@@ -388,7 +391,7 @@ export default function StrategiesPage() {
                 <TableBody>
                   {filteredStrategies.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                         {loading ? '로딩 중...' : '전략이 없습니다.'}
                       </TableCell>
                     </TableRow>
@@ -412,6 +415,19 @@ export default function StrategiesPage() {
                             >
                               {categoryLabels[strategy.categoryCode] || strategy.categoryName}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                strategy.stockSelectionType === 'PORTFOLIO'
+                                  ? 'default'
+                                  : 'secondary'
+                              }
+                            >
+                              {stockSelectionTypeLabels[
+                                strategy.stockSelectionType as StockSelectionType
+                              ] || strategy.stockSelectionType}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant={statusVariants[strategy.status]} className="gap-1">
@@ -553,11 +569,11 @@ export default function StrategiesPage() {
       {/* 상세 보기 모달 */}
       {selectedStrategy && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-2xl rounded-xl bg-slate-900 p-6 shadow-2xl">
+          <div className="mx-4 w-full max-w-2xl rounded-xl bg-white border border-slate-200 p-6 shadow-2xl">
             <div className="mb-4 flex items-start justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">{selectedStrategy.name}</h2>
-                <p className="text-sm text-slate-400">
+                <h2 className="text-xl font-bold text-slate-900">{selectedStrategy.name}</h2>
+                <p className="text-sm text-slate-500">
                   {categoryLabels[selectedStrategy.categoryCode] || selectedStrategy.categoryName}{' '}
                   전략 • {selectedStrategy.ownerName || '알 수 없음'}
                 </p>
@@ -569,13 +585,13 @@ export default function StrategiesPage() {
 
             <div className="mb-6 space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-medium text-slate-400">설명</h3>
-                <p className="text-white">{selectedStrategy.description || '-'}</p>
+                <h3 className="mb-1 text-sm font-medium text-slate-500">설명</h3>
+                <p className="text-slate-900">{selectedStrategy.description || '-'}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">CAGR</h3>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">CAGR</h3>
                   <p
                     className={`text-lg font-bold ${(selectedStrategy.latestCagr ?? 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}
                   >
@@ -590,7 +606,7 @@ export default function StrategiesPage() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">MDD</h3>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">MDD</h3>
                   <p className="text-lg font-bold text-red-500">
                     {selectedStrategy.latestMdd != null
                       ? `${selectedStrategy.latestMdd.toFixed(2)}%`
@@ -598,17 +614,17 @@ export default function StrategiesPage() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">구독자 수</h3>
-                  <p className="text-lg font-bold text-white">
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">구독자 수</h3>
+                  <p className="text-lg font-bold text-slate-900">
                     {selectedStrategy.subscriberCount}명
                   </p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">작성자 이메일</h3>
-                  <p className="text-white">{selectedStrategy.ownerEmail || '-'}</p>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">작성자 이메일</h3>
+                  <p className="text-slate-900">{selectedStrategy.ownerEmail || '-'}</p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">평균 평점</h3>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">평균 평점</h3>
                   <p className="text-lg font-bold text-yellow-500">
                     {selectedStrategy.averageRating > 0
                       ? selectedStrategy.averageRating.toFixed(1)
@@ -616,19 +632,27 @@ export default function StrategiesPage() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">리밸런싱 주기</h3>
-                  <p className="text-white">{selectedStrategy.rebalanceFrequency}</p>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">종목선정 방식</h3>
+                  <p className="text-slate-900">
+                    {stockSelectionTypeLabels[
+                      selectedStrategy.stockSelectionType as StockSelectionType
+                    ] || selectedStrategy.stockSelectionType}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">리밸런싱 주기</h3>
+                  <p className="text-slate-900">{selectedStrategy.rebalanceFrequency}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-700 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4">
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">생성일</h3>
-                  <p className="text-white">{formatDate(selectedStrategy.createdAt)}</p>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">생성일</h3>
+                  <p className="text-slate-900">{formatDate(selectedStrategy.createdAt)}</p>
                 </div>
                 <div>
-                  <h3 className="mb-1 text-sm font-medium text-slate-400">수정일</h3>
-                  <p className="text-white">{formatDate(selectedStrategy.updatedAt)}</p>
+                  <h3 className="mb-1 text-sm font-medium text-slate-500">수정일</h3>
+                  <p className="text-slate-900">{formatDate(selectedStrategy.updatedAt)}</p>
                 </div>
               </div>
             </div>

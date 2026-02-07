@@ -19,15 +19,15 @@ interface RequestConfig extends RequestInit {
 export const tokenStorage = {
   getToken: (): string | null => {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('backoffice_token');
+    return localStorage.getItem('auth_token');
   },
   setToken: (token: string): void => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem('backoffice_token', token);
+    localStorage.setItem('auth_token', token);
   },
   removeToken: (): void => {
     if (typeof window === 'undefined') return;
-    localStorage.removeItem('backoffice_token');
+    localStorage.removeItem('auth_token');
   },
 };
 
@@ -136,6 +136,13 @@ export const apiClient = {
   authPut: <T>(endpoint: string, body?: unknown) =>
     request<T>(endpoint, {
       method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+      auth: true,
+    }),
+
+  authPatch: <T>(endpoint: string, body?: unknown) =>
+    request<T>(endpoint, {
+      method: 'PATCH',
       body: body ? JSON.stringify(body) : undefined,
       auth: true,
     }),

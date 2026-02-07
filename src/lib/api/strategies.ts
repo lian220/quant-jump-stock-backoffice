@@ -25,6 +25,11 @@ export type StrategyStatus =
 export type RebalanceFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'NONE';
 
 /**
+ * 종목선정 방식
+ */
+export type StockSelectionType = 'SCREENING' | 'PORTFOLIO';
+
+/**
  * 전략 요약 (목록용)
  */
 export interface StrategySummary {
@@ -40,6 +45,7 @@ export interface StrategySummary {
   isPublic: boolean;
   isPremium: boolean;
   rebalanceFrequency: RebalanceFrequency;
+  stockSelectionType: StockSelectionType;
   subscriberCount: number;
   averageRating: number;
   latestCagr: number | null;
@@ -108,7 +114,7 @@ export interface GetStrategiesParams {
 export async function getStrategies(
   params: GetStrategiesParams = {},
 ): Promise<StrategyListResponse> {
-  return apiClient.get<StrategyListResponse>('/api/v1/admin/strategies', {
+  return apiClient.authGet<StrategyListResponse>('/api/v1/admin/strategies', {
     page: params.page ?? 0,
     size: params.size ?? 20,
     status: params.status,
@@ -122,7 +128,7 @@ export async function getStrategies(
  * 전략 통계 조회
  */
 export async function getStrategyStats(): Promise<StrategyStatsResponse> {
-  return apiClient.get<StrategyStatsResponse>('/api/v1/admin/strategies/stats');
+  return apiClient.authGet<StrategyStatsResponse>('/api/v1/admin/strategies/stats');
 }
 
 /**
@@ -132,7 +138,7 @@ export async function changeStrategyStatus(
   strategyId: number,
   request: ChangeStatusRequest,
 ): Promise<ChangeStatusResponse> {
-  return apiClient.patch<ChangeStatusResponse>(
+  return apiClient.authPatch<ChangeStatusResponse>(
     `/api/v1/admin/strategies/${strategyId}/status`,
     request,
   );
@@ -142,7 +148,7 @@ export async function changeStrategyStatus(
  * 전략 승인
  */
 export async function approveStrategy(strategyId: number): Promise<ChangeStatusResponse> {
-  return apiClient.post<ChangeStatusResponse>(`/api/v1/admin/strategies/${strategyId}/approve`);
+  return apiClient.authPost<ChangeStatusResponse>(`/api/v1/admin/strategies/${strategyId}/approve`);
 }
 
 /**
@@ -153,7 +159,7 @@ export async function rejectStrategy(
   reason?: string,
 ): Promise<ChangeStatusResponse> {
   const params = reason ? `?reason=${encodeURIComponent(reason)}` : '';
-  return apiClient.post<ChangeStatusResponse>(
+  return apiClient.authPost<ChangeStatusResponse>(
     `/api/v1/admin/strategies/${strategyId}/reject${params}`,
   );
 }
@@ -162,7 +168,7 @@ export async function rejectStrategy(
  * 전략 발행
  */
 export async function publishStrategy(strategyId: number): Promise<ChangeStatusResponse> {
-  return apiClient.post<ChangeStatusResponse>(`/api/v1/admin/strategies/${strategyId}/publish`);
+  return apiClient.authPost<ChangeStatusResponse>(`/api/v1/admin/strategies/${strategyId}/publish`);
 }
 
 // === 상태 유틸리티 ===
@@ -231,6 +237,8 @@ export interface CreateStrategyRequest {
   isPremium?: boolean;
   conditions?: string;
   rebalanceFrequency?: RebalanceFrequency;
+  stockSelectionType?: StockSelectionType;
+  investmentPhilosophy?: string;
 }
 
 /**
@@ -245,6 +253,8 @@ export interface UpdateStrategyRequest {
   status?: StrategyStatus;
   conditions?: string;
   rebalanceFrequency?: RebalanceFrequency;
+  stockSelectionType?: StockSelectionType;
+  investmentPhilosophy?: string;
 }
 
 /**
@@ -276,6 +286,8 @@ export interface StrategyDetailResponse {
   status: StrategyStatus;
   conditions: string;
   rebalanceFrequency: RebalanceFrequency;
+  stockSelectionType: StockSelectionType;
+  investmentPhilosophy: string | null;
   subscriberCount: number;
   averageRating: number;
   backtestResults: BacktestResultSummary[];
@@ -302,6 +314,7 @@ export interface MyStrategySummary {
   status: StrategyStatus;
   isPublic: boolean;
   isPremium: boolean;
+  stockSelectionType: StockSelectionType;
   subscriberCount: number;
   averageRating: number;
   latestCagr: number | null;
@@ -383,3 +396,125 @@ export const rebalanceOptions = [
   { code: 'YEARLY', name: '연간' },
   { code: 'NONE', name: '없음' },
 ];
+
+/**
+ * 종목선정 방식 레이블
+ */
+export const stockSelectionTypeLabels: Record<StockSelectionType, string> = {
+  SCREENING: '스크리닝',
+  PORTFOLIO: '포트폴리오',
+};
+
+/**
+ * 종목선정 방식 옵션
+ */
+export const stockSelectionTypeOptions = [
+  { code: 'SCREENING', name: '스크리닝 (조건 필터링)' },
+  { code: 'PORTFOLIO', name: '포트폴리오 (고정 종목)' },
+];
+
+// === 전략 기본 종목 (Default Stocks) API ===
+
+/**
+ * 기본 종목 응답
+ */
+export interface DefaultStockResponse {
+  id: number;
+  strategyId: number;
+  stockId: number;
+  ticker: string;
+  stockName: string;
+  stockNameEn: string | null;
+  market: string;
+  targetWeight: number;
+  memo: string | null;
+  createdAt: string;
+}
+
+/**
+ * 기본 종목 목록 응답
+ */
+export interface DefaultStockListResponse {
+  stocks: DefaultStockResponse[];
+  totalWeight: number;
+}
+
+/**
+ * 기본 종목 추가 요청
+ */
+export interface AddDefaultStockRequest {
+  stockId: number;
+  targetWeight: number;
+  memo?: string;
+}
+
+/**
+ * 기본 종목 비중 수정 요청
+ */
+export interface UpdateDefaultStockRequest {
+  targetWeight: number;
+  memo?: string;
+}
+
+/**
+ * 기본 종목 전체 교체 요청
+ */
+export interface ReplaceDefaultStocksRequest {
+  stocks: AddDefaultStockRequest[];
+}
+
+/**
+ * 전략 기본 종목 목록 조회
+ */
+export async function getDefaultStocks(strategyId: number): Promise<DefaultStockListResponse> {
+  return apiClient.authGet<DefaultStockListResponse>(
+    `/api/v1/strategies/${strategyId}/default-stocks`,
+  );
+}
+
+/**
+ * 전략 기본 종목 추가
+ */
+export async function addDefaultStock(
+  strategyId: number,
+  request: AddDefaultStockRequest,
+): Promise<DefaultStockResponse> {
+  return apiClient.authPost<DefaultStockResponse>(
+    `/api/v1/strategies/${strategyId}/default-stocks`,
+    request,
+  );
+}
+
+/**
+ * 전략 기본 종목 비중 수정
+ */
+export async function updateDefaultStock(
+  strategyId: number,
+  stockId: number,
+  request: UpdateDefaultStockRequest,
+): Promise<DefaultStockResponse> {
+  return apiClient.authPut<DefaultStockResponse>(
+    `/api/v1/strategies/${strategyId}/default-stocks/${stockId}`,
+    request,
+  );
+}
+
+/**
+ * 전략 기본 종목 삭제
+ */
+export async function removeDefaultStock(strategyId: number, stockId: number): Promise<void> {
+  return apiClient.authDelete<void>(`/api/v1/strategies/${strategyId}/default-stocks/${stockId}`);
+}
+
+/**
+ * 전략 기본 종목 전체 교체
+ */
+export async function replaceDefaultStocks(
+  strategyId: number,
+  request: ReplaceDefaultStocksRequest,
+): Promise<DefaultStockListResponse> {
+  return apiClient.authPut<DefaultStockListResponse>(
+    `/api/v1/strategies/${strategyId}/default-stocks`,
+    request,
+  );
+}
