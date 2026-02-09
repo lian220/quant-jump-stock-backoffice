@@ -40,6 +40,8 @@ jobs:
           tags: ${{ env.AR_REPO }}/qjs-backoffice:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.API_BASE_URL }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
