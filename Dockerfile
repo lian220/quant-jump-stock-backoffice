@@ -17,6 +17,11 @@ RUN pnpm install --no-frozen-lockfile
 # Copy source files
 COPY . .
 
+# 빌드 타임에 NEXT_PUBLIC_* 환경변수 주입 (클라이언트 컴포넌트에 인라인됨)
+ARG NEXT_PUBLIC_API_URL
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build Next.js app
 RUN pnpm build
 
