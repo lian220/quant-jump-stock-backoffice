@@ -7,7 +7,7 @@
 const API_BASE_URL =
   typeof window !== 'undefined'
     ? '' // 브라우저: /api/* (Next.js 프록시 라우트)
-    : process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;

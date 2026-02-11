@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
  *   /api/v1/strategies/* → backend/api/v1/strategies/*
  */
 
-const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
 
 async function proxyRequest(
   request: NextRequest,
