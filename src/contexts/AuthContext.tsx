@@ -5,8 +5,8 @@ import { AuthContextType, AuthUser, LoginResponse } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 백엔드 API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
+// same-origin 프록시 경로 (Next.js API Route → 백엔드)
+const API_BASE_URL = '';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

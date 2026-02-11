@@ -3,7 +3,11 @@
  * Backend Core API와 통신하는 기본 클라이언트
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
+// 브라우저에서는 same-origin 프록시(/api/*), 서버에서는 백엔드 직접 호출
+const API_BASE_URL =
+  typeof window !== 'undefined'
+    ? '' // 브라우저: /api/* (Next.js 프록시 라우트)
+    : process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
 
 interface RequestConfig extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
