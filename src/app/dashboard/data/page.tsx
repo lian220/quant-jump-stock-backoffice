@@ -52,6 +52,7 @@ import {
   triggerStateLabels,
   triggerStateBadgeStyles,
   scheduleDescriptions,
+  implementedSchedules,
 } from '@/lib/api/scheduler';
 import type { SchedulerStatus, ScheduleInfo, TriggerState } from '@/lib/api/scheduler';
 
@@ -385,7 +386,14 @@ export default function DataPage() {
                                 {schedule.triggerName}
                               </TableCell>
                               <TableCell className="text-sm text-muted-foreground">
-                                {scheduleDescriptions[schedule.triggerName] || '-'}
+                                <div className="flex items-center gap-2">
+                                  <span>{scheduleDescriptions[schedule.triggerName] || '-'}</span>
+                                  {!implementedSchedules.has(schedule.triggerName) && (
+                                    <Badge className="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0">
+                                      미구현
+                                    </Badge>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell className="text-sm">{schedule.jobName}</TableCell>
                               <TableCell>

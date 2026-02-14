@@ -77,10 +77,30 @@ export const triggerStateBadgeStyles: Record<TriggerState, string> = {
 };
 
 export const scheduleDescriptions: Record<string, string> = {
-  economicDataUpdate2Trigger: '경제 데이터 수집 + Vertex AI 예측 (22:00 KST)',
-  parallelAnalysisTrigger: '병렬 분석 - 기술적 + 감정 (23:05 KST)',
+  economicDataUpdateTrigger: '경제 데이터 수집 (06:05 KST)',
+  economicDataUpdate2Trigger: '경제 데이터 재수집 (23:00 KST)',
+  parallelAnalysisTrigger: '병렬 분석 - 기술적 + 감성 (23:30 KST)',
+  vertexAIPredictionTrigger: 'Vertex AI 예측 (23:45 KST)',
   autoBuyTrigger: '자동 매수 (00:30 KST)',
+  autoSellTrigger: '자동 매도 체크 (매 1분)',
+  stockRecommendationTrigger: '종목 추천 (00:20 KST)',
   cleanupOrdersTrigger: '주문 정리 (06:30 KST)',
   portfolioProfitReportTrigger: '포트폴리오 수익 보고 (07:00 KST)',
-  autoSellTrigger: '자동 매도 체크 (매 1분)',
 };
+
+// 실제 구현된 스케줄러 (미구현은 표시용)
+export const implementedSchedules = new Set([
+  'economicDataUpdateTrigger',
+  'economicDataUpdate2Trigger',
+  'parallelAnalysisTrigger',
+  'vertexAIPredictionTrigger',
+]);
+
+// 미구현 스케줄러
+export const unimplementedSchedules = new Set([
+  'autoBuyTrigger',
+  'autoSellTrigger',
+  'stockRecommendationTrigger',
+  'cleanupOrdersTrigger',
+  'portfolioProfitReportTrigger',
+]);
