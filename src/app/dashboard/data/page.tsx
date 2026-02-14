@@ -17,6 +17,8 @@ import {
   PowerOff,
   CheckCircle2,
   XCircle,
+  Sparkles,
+  Target,
 } from 'lucide-react';
 import { Header, StatCard } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
@@ -40,6 +42,8 @@ import {
   runSentimentAnalysis,
   runParallelAnalysis,
   getAnalysisStatus,
+  triggerVertexAIPrediction,
+  triggerStockRecommendation,
 } from '@/lib/api/data';
 import type { DataStatusResponse, AnalysisStatusResponse } from '@/lib/api/data';
 import {
@@ -81,6 +85,8 @@ export default function DataPage() {
   const [collectEndDate, setCollectEndDate] = useState('');
   const [analysisStartDate, setAnalysisStartDate] = useState('');
   const [analysisEndDate, setAnalysisEndDate] = useState('');
+  const [recoStartDate, setRecoStartDate] = useState('');
+  const [recoEndDate, setRecoEndDate] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // 작업 로그
@@ -238,6 +244,37 @@ export default function DataPage() {
       addLog('병렬 분석', res.success ? 'success' : 'error', res.message);
     } catch {
       addLog('병렬 분석', 'error', '병렬 분석 요청에 실패했습니다.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTriggerVertexAI = async () => {
+    try {
+      setActionLoading('vertexai');
+      const res = await triggerVertexAIPrediction();
+      addLog(
+        'Vertex AI 예측',
+        res.success ? 'success' : 'error',
+        res.message + (res.estimatedTime ? ` (예상: ${res.estimatedTime})` : ''),
+      );
+    } catch {
+      addLog('Vertex AI 예측', 'error', 'Vertex AI 예측 요청에 실패했습니다.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTriggerRecommendation = async () => {
+    try {
+      setActionLoading('recommendation');
+      const res = await triggerStockRecommendation(
+        recoStartDate || undefined,
+        recoEndDate || undefined,
+      );
+      addLog('종목 추천', res.success ? 'success' : 'error', res.message);
+    } catch {
+      addLog('종목 추천', 'error', '종목 추천 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -462,6 +499,92 @@ export default function DataPage() {
           {/* === 수동 실행 탭 === */}
           <TabsContent value="manual">
             <div className="grid gap-6 xl:grid-cols-2">
+              {/* Vertex AI 예측 */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                      <Sparkles className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">Vertex AI 예측</CardTitle>
+                      <CardDescription>GCP Vertex AI 기반 주가 예측 실행</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <p className="text-xs text-muted-foreground">
+                      Kafka를 통해 Data Engine으로 요청되며, 실행에 3~5분 소요됩니다. GCP 환경에서만
+                      실제 예측이 수행됩니다.
+                    </p>
+                    <Button
+                      onClick={handleTriggerVertexAI}
+                      disabled={actionLoading !== null}
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
+                      {actionLoading === 'vertexai' ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="mr-2 h-4 w-4" />
+                      )}
+                      Vertex AI 예측 실행
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 종목 추천 */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+                      <Target className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">종목 추천</CardTitle>
+                      <CardDescription>Composite Score 기반 종목 추천 생성</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="mb-1.5 text-xs">시작일 (선택)</Label>
+                        <Input
+                          type="date"
+                          value={recoStartDate}
+                          onChange={(e) => setRecoStartDate(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-1.5 text-xs">종료일 (선택)</Label>
+                        <Input
+                          type="date"
+                          value={recoEndDate}
+                          onChange={(e) => setRecoEndDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      AI/기술적/감성 점수를 종합하여 매수 추천 종목을 생성합니다.
+                    </p>
+                    <Button
+                      onClick={handleTriggerRecommendation}
+                      disabled={actionLoading !== null}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      {actionLoading === 'recommendation' ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Target className="mr-2 h-4 w-4" />
+                      )}
+                      종목 추천 실행
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
               {/* 경제 데이터 수집 */}
               <Card>
                 <CardHeader>

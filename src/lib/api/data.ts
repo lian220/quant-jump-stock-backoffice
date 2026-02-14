@@ -90,3 +90,29 @@ export async function runParallelAnalysis(): Promise<AnalysisResponse> {
 export async function getAnalysisStatus(): Promise<AnalysisStatusResponse> {
   return apiClient.get<AnalysisStatusResponse>('/api/v1/analyses/status');
 }
+
+// === Vertex AI 예측 API ===
+
+export interface VertexAIPredictionResponse {
+  success: boolean;
+  message: string;
+  requestId?: string;
+  estimatedTime?: string;
+  note?: string;
+}
+
+export async function triggerVertexAIPrediction(): Promise<VertexAIPredictionResponse> {
+  return apiClient.authPost<VertexAIPredictionResponse>('/api/v1/vertex-ai/predict');
+}
+
+// === 종목 추천 API ===
+
+export async function triggerStockRecommendation(
+  startDate?: string,
+  endDate?: string,
+): Promise<AnalysisResponse> {
+  return apiClient.authPost<AnalysisResponse>('/api/v1/analyses/recommendation', {
+    startDate,
+    endDate,
+  });
+}
