@@ -250,6 +250,9 @@ export interface CreateStrategyRequest {
   rebalanceFrequency?: RebalanceFrequency;
   stockSelectionType?: StockSelectionType;
   investmentPhilosophy?: string;
+  riskSettings?: string;
+  positionSizing?: string;
+  tradingCosts?: string;
 }
 
 /**
@@ -266,6 +269,9 @@ export interface UpdateStrategyRequest {
   rebalanceFrequency?: RebalanceFrequency;
   stockSelectionType?: StockSelectionType;
   investmentPhilosophy?: string;
+  riskSettings?: string;
+  positionSizing?: string;
+  tradingCosts?: string;
 }
 
 /**
@@ -296,6 +302,9 @@ export interface StrategyDetailResponse {
   isPremium: boolean;
   status: StrategyStatus;
   conditions: string;
+  riskSettings: string;
+  positionSizing: string;
+  tradingCosts: string;
   rebalanceFrequency: RebalanceFrequency;
   stockSelectionType: StockSelectionType;
   investmentPhilosophy: string | null;
