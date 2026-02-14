@@ -94,13 +94,5 @@ export const implementedSchedules = new Set([
   'economicDataUpdate2Trigger',
   'parallelAnalysisTrigger',
   'vertexAIPredictionTrigger',
-]);
-
-// 미구현 스케줄러
-export const unimplementedSchedules = new Set([
-  'autoBuyTrigger',
-  'autoSellTrigger',
   'stockRecommendationTrigger',
-  'cleanupOrdersTrigger',
-  'portfolioProfitReportTrigger',
 ]);
