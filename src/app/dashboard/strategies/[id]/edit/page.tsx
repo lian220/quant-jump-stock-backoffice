@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Loader2, AlertCircle, RefreshCw, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, AlertCircle, RefreshCw, Plus, Trash2, Info } from 'lucide-react';
 import { Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   getStrategyDetail,
   updateStrategy,
@@ -32,6 +33,20 @@ import {
   stockSelectionTypeOptions,
   statusLabels,
 } from '@/lib/api';
+
+// 용어 설명 툴팁 컴포넌트
+function InfoTip({ text }: { text: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Info className="inline-block w-3.5 h-3.5 text-muted-foreground hover:text-foreground cursor-help ml-1 shrink-0" />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 // 상태 옵션 (수정 가능한 상태만)
 const statusOptions: { code: StrategyStatus; name: string }[] = [
@@ -54,10 +69,55 @@ export default function EditStrategyPage() {
   const [formData, setFormData] = useState<UpdateStrategyRequest>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // 리스크 설정 상태
+  const [stopLossEnabled, setStopLossEnabled] = useState(false);
+  const [stopLossValue, setStopLossValue] = useState(5);
+  const [takeProfitEnabled, setTakeProfitEnabled] = useState(false);
+  const [takeProfitValue, setTakeProfitValue] = useState(10);
+  const [trailingStopEnabled, setTrailingStopEnabled] = useState(false);
+  const [trailingStopValue, setTrailingStopValue] = useState(3);
+
+  // 포지션 사이징 상태
+  const [positionMethod, setPositionMethod] = useState('FIXED_PERCENTAGE');
+  const [maxPositionPct, setMaxPositionPct] = useState(20);
+  const [maxPositions, setMaxPositions] = useState(10);
+
+  // 거래 비용 상태
+  const [commissionRate, setCommissionRate] = useState(0.015);
+  const [taxRate, setTaxRate] = useState(0.23);
+  const [slippageModel, setSlippageModel] = useState('FIXED');
+  const [baseSlippage, setBaseSlippage] = useState(0.1);
+
   // 포트폴리오 종목 상태
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
     { id: crypto.randomUUID(), assetClass: '', name: '', ticker: '', weight: 0 },
   ]);
+
+  // 리스크 설정 → formData JSON 동기화
+  useEffect(() => {
+    const rs: Record<string, unknown> = {};
+    if (stopLossEnabled) rs.stopLoss = { enabled: true, percentage: stopLossValue };
+    if (takeProfitEnabled) rs.takeProfit = { enabled: true, percentage: takeProfitValue };
+    if (trailingStopEnabled) rs.trailingStop = { enabled: true, percentage: trailingStopValue };
+    setFormData((prev) => ({ ...prev, riskSettings: JSON.stringify(rs) }));
+  }, [
+    stopLossEnabled,
+    stopLossValue,
+    takeProfitEnabled,
+    takeProfitValue,
+    trailingStopEnabled,
+    trailingStopValue,
+  ]);
+
+  useEffect(() => {
+    const ps = { method: positionMethod, maxPositionPct, maxPositions };
+    setFormData((prev) => ({ ...prev, positionSizing: JSON.stringify(ps) }));
+  }, [positionMethod, maxPositionPct, maxPositions]);
+
+  useEffect(() => {
+    const tc = { commissionRate, taxRate, slippageModel, baseSlippage };
+    setFormData((prev) => ({ ...prev, tradingCosts: JSON.stringify(tc) }));
+  }, [commissionRate, taxRate, slippageModel, baseSlippage]);
 
   // PORTFOLIO → SCREENING 전환 시 stale conditions 초기화
   useEffect(() => {
@@ -128,6 +188,48 @@ export default function EditStrategyPage() {
         stockSelectionType: data.stockSelectionType as StockSelectionType,
         investmentPhilosophy: data.investmentPhilosophy || '',
       });
+
+      // 리스크 설정 초기값 로드
+      if (data.riskSettings && data.riskSettings !== '{}') {
+        try {
+          const rs = JSON.parse(data.riskSettings);
+          if (rs.stopLoss?.enabled) {
+            setStopLossEnabled(true);
+            setStopLossValue(rs.stopLoss.percentage ?? 5);
+          }
+          if (rs.takeProfit?.enabled) {
+            setTakeProfitEnabled(true);
+            setTakeProfitValue(rs.takeProfit.percentage ?? 10);
+          }
+          if (rs.trailingStop?.enabled) {
+            setTrailingStopEnabled(true);
+            setTrailingStopValue(rs.trailingStop.percentage ?? 3);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      if (data.positionSizing && data.positionSizing !== '{}') {
+        try {
+          const ps = JSON.parse(data.positionSizing);
+          if (ps.method) setPositionMethod(ps.method);
+          if (ps.maxPositionPct != null) setMaxPositionPct(ps.maxPositionPct);
+          if (ps.maxPositions != null) setMaxPositions(ps.maxPositions);
+        } catch {
+          /* ignore */
+        }
+      }
+      if (data.tradingCosts && data.tradingCosts !== '{}') {
+        try {
+          const tc = JSON.parse(data.tradingCosts);
+          if (tc.commissionRate != null) setCommissionRate(tc.commissionRate);
+          if (tc.taxRate != null) setTaxRate(tc.taxRate);
+          if (tc.slippageModel) setSlippageModel(tc.slippageModel);
+          if (tc.baseSlippage != null) setBaseSlippage(tc.baseSlippage);
+        } catch {
+          /* ignore */
+        }
+      }
 
       // 포트폴리오 초기값 로드
       if (data.stockSelectionType === 'PORTFOLIO' && data.conditions) {
@@ -487,6 +589,230 @@ export default function EditStrategyPage() {
                   </CardContent>
                 </Card>
               )}
+              {/* 백테스트 기본 리스크 설정 */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>백테스트 기본 리스크 설정</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    이 전략의 백테스트 실행 시 기본값으로 사용됩니다
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* 리스크 설정 */}
+                  <div>
+                    <Label className="text-base font-semibold flex items-center">
+                      리스크 관리
+                      <InfoTip text="매매 시 손실을 제한하고 수익을 확정하기 위한 자동 매도 규칙입니다." />
+                    </Label>
+                    <div className="mt-3 grid gap-4 sm:grid-cols-3">
+                      <div className="space-y-2 rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="stopLoss" className="text-sm flex items-center">
+                            손절 (Stop Loss)
+                            <InfoTip text="매입가 대비 설정 비율만큼 하락하면 자동으로 매도하여 손실을 제한합니다." />
+                          </Label>
+                          <Switch
+                            id="stopLoss"
+                            checked={stopLossEnabled}
+                            onCheckedChange={setStopLossEnabled}
+                          />
+                        </div>
+                        {stopLossEnabled && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={stopLossValue}
+                              onChange={(e) => setStopLossValue(parseFloat(e.target.value) || 0)}
+                              className="w-20 text-right"
+                              min={0}
+                              max={50}
+                              step={0.5}
+                            />
+                            <span className="text-sm text-muted-foreground">% 하락 시</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2 rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="takeProfit" className="text-sm flex items-center">
+                            익절 (Take Profit)
+                            <InfoTip text="매입가 대비 설정 비율만큼 상승하면 자동으로 매도하여 수익을 확정합니다." />
+                          </Label>
+                          <Switch
+                            id="takeProfit"
+                            checked={takeProfitEnabled}
+                            onCheckedChange={setTakeProfitEnabled}
+                          />
+                        </div>
+                        {takeProfitEnabled && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={takeProfitValue}
+                              onChange={(e) => setTakeProfitValue(parseFloat(e.target.value) || 0)}
+                              className="w-20 text-right"
+                              min={0}
+                              max={100}
+                              step={0.5}
+                            />
+                            <span className="text-sm text-muted-foreground">% 상승 시</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2 rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="trailingStop" className="text-sm flex items-center">
+                            트레일링 스탑
+                            <InfoTip text="최고가 대비 설정 비율만큼 하락하면 매도합니다. 상승 추세를 추종하면서 수익을 보호합니다." />
+                          </Label>
+                          <Switch
+                            id="trailingStop"
+                            checked={trailingStopEnabled}
+                            onCheckedChange={setTrailingStopEnabled}
+                          />
+                        </div>
+                        {trailingStopEnabled && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={trailingStopValue}
+                              onChange={(e) =>
+                                setTrailingStopValue(parseFloat(e.target.value) || 0)
+                              }
+                              className="w-20 text-right"
+                              min={0}
+                              max={30}
+                              step={0.5}
+                            />
+                            <span className="text-sm text-muted-foreground">% 추적</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 포지션 사이징 */}
+                  <div>
+                    <Label className="text-base font-semibold flex items-center">
+                      포지션 사이징
+                      <InfoTip text="한 종목에 투자할 금액 비율을 결정하는 방법입니다. 리스크 분산을 위해 적절한 포지션 크기 관리가 중요합니다." />
+                    </Label>
+                    <div className="mt-3 grid gap-4 sm:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          사이징 방법
+                          <InfoTip text="고정 비율: 자본의 일정 비율 투자 / 동일 비중: 모든 종목에 동일 금액 / 켈리 공식: 승률 기반 최적 비율 / 변동성 타겟: 목표 변동성에 맞춰 조절 / 리스크 패리티: 리스크 기여도 균등 배분" />
+                        </Label>
+                        <Select value={positionMethod} onValueChange={setPositionMethod}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="FIXED_PERCENTAGE">고정 비율</SelectItem>
+                            <SelectItem value="EQUAL_WEIGHT">동일 비중</SelectItem>
+                            <SelectItem value="KELLY">켈리 공식</SelectItem>
+                            <SelectItem value="VOLATILITY_TARGET">변동성 타겟</SelectItem>
+                            <SelectItem value="RISK_PARITY">리스크 패리티</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          최대 포지션 비율 (%)
+                          <InfoTip text="총 자본 대비 한 종목에 투자할 수 있는 최대 비율입니다." />
+                        </Label>
+                        <Input
+                          type="number"
+                          value={maxPositionPct}
+                          onChange={(e) => setMaxPositionPct(parseFloat(e.target.value) || 0)}
+                          min={1}
+                          max={100}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          최대 포지션 수
+                          <InfoTip text="동시에 보유할 수 있는 최대 종목 수입니다." />
+                        </Label>
+                        <Input
+                          type="number"
+                          value={maxPositions}
+                          onChange={(e) => setMaxPositions(parseInt(e.target.value) || 1)}
+                          min={1}
+                          max={50}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 거래 비용 */}
+                  <div>
+                    <Label className="text-base font-semibold flex items-center">
+                      거래 비용
+                      <InfoTip text="실제 거래 시 발생하는 수수료, 세금, 슬리피지를 반영하여 보다 현실적인 수익률을 계산합니다." />
+                    </Label>
+                    <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          수수료율 (%)
+                          <InfoTip text="매매 시 증권사에 지불하는 수수료입니다. 국내 온라인 거래 기준 약 0.015%입니다." />
+                        </Label>
+                        <Input
+                          type="number"
+                          value={commissionRate}
+                          onChange={(e) => setCommissionRate(parseFloat(e.target.value) || 0)}
+                          min={0}
+                          step={0.001}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          세금율 (%, 매도 시)
+                          <InfoTip text="매도 시 부과되는 증권거래세입니다. 코스피 0.18%, 코스닥 0.23%가 일반적입니다." />
+                        </Label>
+                        <Input
+                          type="number"
+                          value={taxRate}
+                          onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                          min={0}
+                          step={0.01}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center">
+                          슬리피지 모델
+                          <InfoTip text="주문가와 실제 체결가의 차이입니다. 없음: 미적용 / 고정: 일정 비율 / 적응형: 거래량에 따라 변동" />
+                        </Label>
+                        <Select value={slippageModel} onValueChange={setSlippageModel}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="NONE">없음</SelectItem>
+                            <SelectItem value="FIXED">고정</SelectItem>
+                            <SelectItem value="ADAPTIVE">적응형</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {slippageModel !== 'NONE' && (
+                        <div className="space-y-2">
+                          <Label className="text-sm flex items-center">
+                            기본 슬리피지 (%)
+                            <InfoTip text="기본적으로 적용되는 슬리피지 비율입니다. 유동성이 낮은 종목일수록 슬리피지가 클 수 있습니다." />
+                          </Label>
+                          <Input
+                            type="number"
+                            value={baseSlippage}
+                            onChange={(e) => setBaseSlippage(parseFloat(e.target.value) || 0)}
+                            min={0}
+                            step={0.01}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* 설정 */}
