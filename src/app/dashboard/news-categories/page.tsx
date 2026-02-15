@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { RefreshCw, Plus, Loader2 } from 'lucide-react';
+import { Header } from '@/components/dashboard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -199,332 +201,347 @@ export default function NewsCategoriesPage() {
   const activeCount = categories.filter((c) => c.isActive).length;
   const inactiveCount = categories.filter((c) => !c.isActive).length;
 
+  // 로딩 상태
+  if (isLoading && categories.length === 0) {
+    return (
+      <>
+        <Header
+          title="뉴스 카테고리 관리"
+          description="뉴스 카테고리를 관리하고 노출/미노출을 설정합니다."
+        />
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        </div>
+      </>
+    );
+  }
+
+  // 에러 상태
+  if (error && categories.length === 0) {
+    return (
+      <>
+        <Header
+          title="뉴스 카테고리 관리"
+          description="뉴스 카테고리를 관리하고 노출/미노출을 설정합니다."
+        />
+        <div className="flex h-96 flex-col items-center justify-center gap-4">
+          <p className="text-red-500">{error}</p>
+          <Button onClick={fetchCategories} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            다시 시도
+          </Button>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* 헤더 */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">뉴스 카테고리 관리</h1>
-        <p className="mt-1 text-slate-400">뉴스 카테고리를 관리하고 노출/미노출을 설정합니다.</p>
-      </div>
+    <>
+      <Header
+        title="뉴스 카테고리 관리"
+        description="뉴스 카테고리를 관리하고 노출/미노출을 설정합니다."
+      />
 
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-slate-400">전체</p>
-            <p className="text-2xl font-bold text-white">{categories.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-slate-400">노출 중</p>
-            <p className="text-2xl font-bold text-emerald-400">{activeCount}</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-slate-400">미노출</p>
-            <p className="text-2xl font-bold text-red-400">{inactiveCount}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="p-6">
+        {/* 통계 카드 */}
+        <div className="mb-6 grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                전체 카테고리
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{categories.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">노출 중</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{activeCount}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">미노출</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{inactiveCount}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* 필터 + 생성 버튼 */}
-      <Card className="bg-slate-800/50 border-slate-700">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center gap-3">
-            <Select value={filterGroup} onValueChange={setFilterGroup}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-slate-600 text-white">
-                <SelectValue placeholder="그룹" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-600">
-                <SelectItem value="all" className="text-slate-200">
-                  전체 그룹
-                </SelectItem>
-                {GROUP_OPTIONS.map((g) => (
-                  <SelectItem key={g.value} value={g.value} className="text-slate-200">
-                    {g.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filterActive} onValueChange={setFilterActive}>
-              <SelectTrigger className="w-32 bg-slate-900/50 border-slate-600 text-white">
-                <SelectValue placeholder="상태" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-600">
-                <SelectItem value="all" className="text-slate-200">
-                  전체 상태
-                </SelectItem>
-                <SelectItem value="active" className="text-slate-200">
-                  노출
-                </SelectItem>
-                <SelectItem value="inactive" className="text-slate-200">
-                  미노출
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <span className="flex-1" />
-            <span className="text-sm text-slate-400">{filteredCategories.length}개</span>
-
-            <Button
-              onClick={() => {
-                resetForm();
-                setFormMode('create');
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              + 카테고리 추가
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 생성/수정 폼 */}
-      {formMode !== 'closed' && (
-        <Card className="bg-slate-800/50 border-emerald-500/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-white">
-              {formMode === 'create' ? '카테고리 추가' : '카테고리 수정'}
-            </CardTitle>
-            <CardDescription className="text-slate-400">
-              {formMode === 'create'
-                ? '새 뉴스 카테고리를 추가합니다.'
-                : `ID: ${editingId} 카테고리를 수정합니다.`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">카테고리명 (한글) *</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="속보"
-                  className="bg-slate-900/50 border-slate-600 text-white"
-                />
+        {/* 생성/수정 폼 */}
+        {formMode !== 'closed' && (
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle>{formMode === 'create' ? '카테고리 추가' : '카테고리 수정'}</CardTitle>
+              <CardDescription>
+                {formMode === 'create'
+                  ? '새 뉴스 카테고리를 추가합니다.'
+                  : `ID: ${editingId} 카테고리를 수정합니다.`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">
+                    카테고리명 (한글) *
+                  </label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="속보"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">
+                    카테고리명 (영문) *
+                  </label>
+                  <Input
+                    value={formData.nameEn}
+                    onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                    placeholder="Breaking News"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">카테고리명 (영문) *</label>
-                <Input
-                  value={formData.nameEn}
-                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                  placeholder="Breaking News"
-                  className="bg-slate-900/50 border-slate-600 text-white"
-                />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">그룹</label>
-                <Select
-                  value={formData.group}
-                  onValueChange={(v) => setFormData({ ...formData, group: v })}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">그룹</label>
+                  <Select
+                    value={formData.group}
+                    onValueChange={(v) => setFormData({ ...formData, group: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GROUP_OPTIONS.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>
+                          {g.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">아이콘</label>
+                  <Select
+                    value={formData.icon || 'none'}
+                    onValueChange={(v) => setFormData({ ...formData, icon: v === 'none' ? '' : v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">없음</SelectItem>
+                      {ICON_OPTIONS.map((i) => (
+                        <SelectItem key={i.value} value={i.value}>
+                          {i.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">가중치</label>
+                  <Input
+                    type="number"
+                    step="0.05"
+                    min="0"
+                    max="1"
+                    value={formData.weight}
+                    onChange={(e) =>
+                      setFormData({ ...formData, weight: parseFloat(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">설명</label>
+                  <Input
+                    value={formData.description ?? ''}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="카테고리 설명"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">정렬 순서</label>
+                  <Input
+                    type="number"
+                    value={formData.sortOrder}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-emerald-600 hover:bg-emerald-700"
                 >
-                  <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white">
-                    <SelectValue />
+                  {isSaving ? '저장 중...' : formMode === 'create' ? '추가' : '수정'}
+                </Button>
+                <Button variant="outline" onClick={resetForm}>
+                  취소
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 카테고리 목록 */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>카테고리 목록</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={fetchCategories} disabled={isLoading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                새로고침
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  resetForm();
+                  setFormMode('create');
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                카테고리 추가
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* 필터 */}
+            <div className="mb-4 flex flex-col gap-4 md:flex-row">
+              <div className="flex gap-2">
+                <Select value={filterGroup} onValueChange={setFilterGroup}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="그룹" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
+                  <SelectContent>
+                    <SelectItem value="all">전체 그룹</SelectItem>
                     {GROUP_OPTIONS.map((g) => (
-                      <SelectItem key={g.value} value={g.value} className="text-slate-200">
+                      <SelectItem key={g.value} value={g.value}>
                         {g.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">아이콘</label>
-                <Select
-                  value={formData.icon || 'none'}
-                  onValueChange={(v) => setFormData({ ...formData, icon: v === 'none' ? '' : v })}
-                >
-                  <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white">
-                    <SelectValue />
+
+                <Select value={filterActive} onValueChange={setFilterActive}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue placeholder="상태" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-600">
-                    <SelectItem value="none" className="text-slate-200">
-                      없음
-                    </SelectItem>
-                    {ICON_OPTIONS.map((i) => (
-                      <SelectItem key={i.value} value={i.value} className="text-slate-200">
-                        {i.label}
-                      </SelectItem>
-                    ))}
+                  <SelectContent>
+                    <SelectItem value="all">전체 상태</SelectItem>
+                    <SelectItem value="active">노출</SelectItem>
+                    <SelectItem value="inactive">미노출</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">가중치</label>
-                <Input
-                  type="number"
-                  step="0.05"
-                  min="0"
-                  max="1"
-                  value={formData.weight}
-                  onChange={(e) =>
-                    setFormData({ ...formData, weight: parseFloat(e.target.value) || 0 })
-                  }
-                  className="bg-slate-900/50 border-slate-600 text-white"
-                />
-              </div>
+              <div className="flex-1" />
+              <p className="text-sm text-muted-foreground self-center">
+                총 {filteredCategories.length}개
+              </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">설명</label>
-                <Input
-                  value={formData.description ?? ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="카테고리 설명"
-                  className="bg-slate-900/50 border-slate-600 text-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">정렬 순서</label>
-                <Input
-                  type="number"
-                  value={formData.sortOrder}
-                  onChange={(e) =>
-                    setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })
-                  }
-                  className="bg-slate-900/50 border-slate-600 text-white"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                {isSaving ? '저장 중...' : formMode === 'create' ? '추가' : '수정'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={resetForm}
-                className="border-slate-600 text-slate-300"
-              >
-                취소
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 테이블 */}
-      {error ? (
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="py-12 text-center">
-            <p className="text-red-400">{error}</p>
-            <Button
-              onClick={fetchCategories}
-              variant="outline"
-              className="mt-4 border-slate-600 text-slate-300"
-            >
-              다시 시도
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="bg-slate-800/50 border-slate-700">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-700 hover:bg-transparent">
-                <TableHead className="text-slate-400">ID</TableHead>
-                <TableHead className="text-slate-400">카테고리</TableHead>
-                <TableHead className="text-slate-400">영문</TableHead>
-                <TableHead className="text-slate-400">그룹</TableHead>
-                <TableHead className="text-slate-400">아이콘</TableHead>
-                <TableHead className="text-slate-400">가중치</TableHead>
-                <TableHead className="text-slate-400">순서</TableHead>
-                <TableHead className="text-slate-400">상태</TableHead>
-                <TableHead className="text-slate-400 text-right">관리</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-slate-500">
-                    로딩 중...
-                  </TableCell>
-                </TableRow>
-              ) : filteredCategories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12 text-slate-500">
-                    카테고리가 없습니다
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredCategories.map((cat) => (
-                  <TableRow key={cat.id} className="border-slate-700/50">
-                    <TableCell className="text-slate-500 font-mono text-xs">{cat.id}</TableCell>
-                    <TableCell className="text-white font-medium">{cat.name}</TableCell>
-                    <TableCell className="text-slate-400 text-sm">{cat.nameEn}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-slate-700/50 text-slate-300 border-slate-600 text-xs">
-                        {getGroupLabel(cat.group)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-lg">{cat.icon ?? '-'}</TableCell>
-                    <TableCell className="text-slate-300 font-mono text-sm">
-                      {cat.weight.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-slate-400 text-sm">{cat.sortOrder}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          cat.isActive
-                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-400 border-red-500/30'
-                        }
-                      >
-                        {cat.isActive ? '노출' : '미노출'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggle(cat.id)}
-                          className={
-                            cat.isActive
-                              ? 'text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10'
-                              : 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10'
-                          }
-                        >
-                          {cat.isActive ? '숨김' : '노출'}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(cat)}
-                          className="text-slate-400 hover:text-white hover:bg-slate-700/50"
-                        >
-                          수정
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(cat.id, cat.name)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        >
-                          삭제
-                        </Button>
-                      </div>
-                    </TableCell>
+            {/* 테이블 */}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>카테고리</TableHead>
+                    <TableHead>영문</TableHead>
+                    <TableHead>그룹</TableHead>
+                    <TableHead>아이콘</TableHead>
+                    <TableHead>가중치</TableHead>
+                    <TableHead>순서</TableHead>
+                    <TableHead>상태</TableHead>
+                    <TableHead className="w-32">작업</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                        로딩 중...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredCategories.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                        카테고리가 없습니다
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredCategories.map((cat) => (
+                      <TableRow key={cat.id}>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {cat.id}
+                        </TableCell>
+                        <TableCell className="font-medium">{cat.name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {cat.nameEn}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{getGroupLabel(cat.group)}</Badge>
+                        </TableCell>
+                        <TableCell className="text-lg">{cat.icon ?? '-'}</TableCell>
+                        <TableCell className="font-mono text-sm">{cat.weight.toFixed(2)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {cat.sortOrder}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={cat.isActive ? 'default' : 'destructive'}>
+                            {cat.isActive ? '노출' : '미노출'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggle(cat.id)}
+                              className={
+                                cat.isActive
+                                  ? 'text-yellow-500 hover:text-yellow-600'
+                                  : 'text-green-500 hover:text-green-600'
+                              }
+                            >
+                              {cat.isActive ? '숨김' : '노출'}
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>
+                              수정
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(cat.id, cat.name)}
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              삭제
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
         </Card>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
