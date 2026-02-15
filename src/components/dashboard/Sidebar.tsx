@@ -17,6 +17,7 @@ import {
   CreditCard,
   Target,
   BarChart3,
+  Newspaper,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: TrendingUp, label: '종목 추천', href: '/dashboard/recommendations' },
   { icon: LineChart, label: '분석 현황', href: '/dashboard/analytics' },
   { icon: CreditCard, label: '결제 관리', href: '/dashboard/payments' },
+  { icon: Newspaper, label: '뉴스 관리', href: '/dashboard/news-categories' },
   { icon: Bell, label: '알림 관리', href: '/dashboard/notifications' },
   { icon: Database, label: '데이터 관리', href: '/dashboard/data' },
   { icon: Settings, label: '설정', href: '/dashboard/settings' },
