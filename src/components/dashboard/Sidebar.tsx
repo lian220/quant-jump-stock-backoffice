@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,14 +14,31 @@ import {
   Database,
   LogOut,
   ChevronRight,
+  ChevronDown,
   CreditCard,
   Target,
   BarChart3,
+  Newspaper,
+  FileText,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
-const menuItems = [
+interface SubItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+interface MenuItem {
+  icon: React.ElementType;
+  label: string;
+  href: string;
+  subItems?: SubItem[];
+}
+
+const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: '대시보드', href: '/dashboard' },
   { icon: Users, label: '회원 관리', href: '/dashboard/users' },
   { icon: Target, label: '전략 관리', href: '/dashboard/strategies' },
@@ -29,6 +46,15 @@ const menuItems = [
   { icon: TrendingUp, label: '종목 추천', href: '/dashboard/recommendations' },
   { icon: LineChart, label: '분석 현황', href: '/dashboard/analytics' },
   { icon: CreditCard, label: '결제 관리', href: '/dashboard/payments' },
+  {
+    icon: Newspaper,
+    label: '뉴스 관리',
+    href: '/dashboard/news',
+    subItems: [
+      { label: '뉴스 목록', href: '/dashboard/news', icon: FileText },
+      { label: '카테고리 관리', href: '/dashboard/news-categories', icon: FolderOpen },
+    ],
+  },
   { icon: Bell, label: '알림 관리', href: '/dashboard/notifications' },
   { icon: Database, label: '데이터 관리', href: '/dashboard/data' },
   { icon: Settings, label: '설정', href: '/dashboard/settings' },
@@ -37,6 +63,22 @@ const menuItems = [
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+
+  // 뉴스 하위 경로에 있으면 서브메뉴 자동 펼침
+  const isNewsPath = pathname?.startsWith('/dashboard/news');
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(
+    isNewsPath ? '/dashboard/news' : null,
+  );
+
+  useEffect(() => {
+    if (isNewsPath) {
+      setOpenSubMenu('/dashboard/news');
+    }
+  }, [isNewsPath]);
+
+  const toggleSubMenu = (href: string) => {
+    setOpenSubMenu((prev) => (prev === href ? null : href));
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
@@ -57,16 +99,84 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
             메뉴
           </p>
           {menuItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`));
+            const hasSubItems = item.subItems && item.subItems.length > 0;
+            const isSubMenuOpen = openSubMenu === item.href;
+
+            // 서브메뉴가 있는 경우: 부모 또는 자식 경로 활성 상태
+            const isActive = hasSubItems
+              ? item.subItems!.some(
+                  (sub) => pathname === sub.href || pathname?.startsWith(`${sub.href}/`),
+                )
+              : pathname === item.href ||
+                (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`));
             const isExactDashboard = item.href === '/dashboard' && pathname === '/dashboard';
             const active = isActive || isExactDashboard;
+
+            if (hasSubItems) {
+              return (
+                <div key={item.href}>
+                  <button
+                    onClick={() => toggleSubMenu(item.href)}
+                    className={cn(
+                      'group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
+                      active
+                        ? 'bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 text-emerald-400'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-white',
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-lg transition-all',
+                        active
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-white',
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {isSubMenuOpen ? (
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    )}
+                  </button>
+
+                  {/* 서브메뉴 */}
+                  {isSubMenuOpen && (
+                    <div className="ml-6 mt-1 space-y-1 border-l border-slate-700 pl-3">
+                      {item.subItems!.map((sub) => {
+                        const subActive =
+                          pathname === sub.href ||
+                          (sub.href === '/dashboard/news' && pathname === '/dashboard/news') ||
+                          (sub.href !== '/dashboard/news' && pathname?.startsWith(`${sub.href}/`));
+
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200',
+                              subActive
+                                ? 'bg-emerald-500/10 text-emerald-400'
+                                : 'text-slate-500 hover:bg-slate-800/50 hover:text-slate-300',
+                            )}
+                          >
+                            <sub.icon className="h-4 w-4" />
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
             return (
               <Link
