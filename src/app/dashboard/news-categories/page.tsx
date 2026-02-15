@@ -29,6 +29,7 @@ import {
   toggleCategory,
   deleteCategory,
   getGroupLabel,
+  GROUP_LABELS,
 } from '@/lib/api/news-categories';
 import type {
   AdminCategory,
@@ -54,13 +55,10 @@ const ICON_OPTIONS = [
   { value: 'calendar', label: '📅 calendar' },
 ];
 
-const GROUP_OPTIONS = [
-  { value: 'MARKET', label: '시장' },
-  { value: 'COMPANY', label: '기업' },
-  { value: 'MACRO', label: '매크로' },
-  { value: 'ASSET', label: '자산' },
-  { value: 'INFO', label: '정보' },
-];
+const GROUP_OPTIONS = Object.entries(GROUP_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 type FormMode = 'closed' | 'create' | 'edit';
 
@@ -86,6 +84,7 @@ export default function NewsCategoriesPage() {
     sortOrder: 0,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
@@ -153,7 +152,7 @@ export default function NewsCategoriesPage() {
     try {
       if (formMode === 'create') {
         await createCategory(formData);
-      } else if (formMode === 'edit' && editingId) {
+      } else if (formMode === 'edit' && editingId !== null) {
         const updateData: UpdateCategoryRequest = {
           name: formData.name,
           nameEn: formData.nameEn,
@@ -177,24 +176,32 @@ export default function NewsCategoriesPage() {
 
   // 토글
   const handleToggle = async (id: number) => {
+    if (actionLoadingId !== null) return;
+    setActionLoadingId(id);
     try {
       await toggleCategory(id);
       await fetchCategories();
     } catch (err) {
       console.error('토글 실패:', err);
       alert('상태 변경에 실패했습니다.');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   // 삭제
   const handleDelete = async (id: number, name: string) => {
+    if (actionLoadingId !== null) return;
     if (!confirm(`"${name}" 카테고리를 삭제하시겠습니까?`)) return;
+    setActionLoadingId(id);
     try {
       await deleteCategory(id);
       await fetchCategories();
     } catch (err) {
       console.error('삭제 실패:', err);
       alert('삭제에 실패했습니다.');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -512,6 +519,7 @@ export default function NewsCategoriesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleToggle(cat.id)}
+                              disabled={actionLoadingId === cat.id}
                               className={
                                 cat.isActive
                                   ? 'text-yellow-500 hover:text-yellow-600'
@@ -527,6 +535,7 @@ export default function NewsCategoriesPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(cat.id, cat.name)}
+                              disabled={actionLoadingId === cat.id}
                               className="text-red-500 hover:text-red-600"
                             >
                               삭제

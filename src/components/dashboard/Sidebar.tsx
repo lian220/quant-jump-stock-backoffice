@@ -109,7 +109,9 @@ export const Sidebar: React.FC = () => {
 
             // 서브메뉴가 있는 경우: 부모 또는 자식 경로 활성 상태
             const isActive = hasSubItems
-              ? pathname?.startsWith('/dashboard/news')
+              ? item.subItems!.some(
+                  (sub) => pathname === sub.href || pathname?.startsWith(`${sub.href}/`),
+                )
               : pathname === item.href ||
                 (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`));
             const isExactDashboard = item.href === '/dashboard' && pathname === '/dashboard';

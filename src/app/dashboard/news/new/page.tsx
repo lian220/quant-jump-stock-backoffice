@@ -30,7 +30,7 @@ export default function NewNewsPage() {
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!titleKo.trim()) newErrors.titleKo = '한글 제목을 입력해주세요.';
-    if (importanceScore < 0 || importanceScore > 1)
+    if (Number.isNaN(importanceScore) || importanceScore < 0 || importanceScore > 1)
       newErrors.importanceScore = '0~1 사이의 값을 입력해주세요.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

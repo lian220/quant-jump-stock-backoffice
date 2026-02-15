@@ -75,7 +75,7 @@ export async function deleteCategory(id: number): Promise<void> {
 
 // === 유틸리티 ===
 
-const GROUP_LABELS: Record<string, string> = {
+export const GROUP_LABELS: Record<string, string> = {
   MARKET: '시장',
   COMPANY: '기업',
   MACRO: '매크로',

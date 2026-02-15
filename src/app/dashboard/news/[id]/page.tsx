@@ -184,7 +184,7 @@ export default function NewsDetailPage() {
           <CardContent>
             {/* 통계 그리드 */}
             <div className="grid gap-4 md:grid-cols-5">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4">
                 <div className="text-sm text-muted-foreground">출처</div>
                 <div
                   className={`mt-1 text-lg font-bold ${sourceColors[article.source] || 'text-slate-400'}`}
@@ -192,7 +192,7 @@ export default function NewsDetailPage() {
                   {sourceLabels[article.source] || article.source}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BarChart3 className="h-4 w-4" />
                   중요도
@@ -209,14 +209,14 @@ export default function NewsDetailPage() {
                   {article.importanceScore.toFixed(2)}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Eye className="h-4 w-4" />
                   조회수
                 </div>
                 <div className="mt-1 text-2xl font-bold text-emerald-500">{article.viewCount}</div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   작성일
@@ -225,7 +225,7 @@ export default function NewsDetailPage() {
                   {formatDate(article.sourceCreatedAt)}
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   수집일
@@ -243,9 +243,13 @@ export default function NewsDetailPage() {
           </CardHeader>
           <CardContent>
             {article.summaryKo && (
-              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <div className="mb-1 text-xs font-semibold uppercase text-emerald-700">요약</div>
-                <p className="text-sm text-emerald-900 whitespace-pre-wrap">{article.summaryKo}</p>
+              <div className="mb-4 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 p-4">
+                <div className="mb-1 text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-400">
+                  요약
+                </div>
+                <p className="text-sm text-emerald-900 dark:text-emerald-200 whitespace-pre-wrap">
+                  {article.summaryKo}
+                </p>
               </div>
             )}
             {article.contentKo ? (

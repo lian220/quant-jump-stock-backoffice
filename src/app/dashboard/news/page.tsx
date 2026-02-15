@@ -18,6 +18,7 @@ import {
 import { Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -218,7 +219,7 @@ export default function NewsListPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <div className="text-2xl font-bold text-emerald-600">
-                  {stats?.avgImportance ?? 0}
+                  {(stats?.avgImportance ?? 0).toFixed(2)}
                 </div>
                 <BarChart3 className="h-5 w-5 text-emerald-500" />
               </div>
@@ -249,7 +250,7 @@ export default function NewsListPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="제목, 태그, 티커로 검색..."
+                  placeholder="현재 페이지에서 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -269,25 +270,20 @@ export default function NewsListPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">전체 출처</SelectItem>
-                    <SelectItem value="SAVETICKER">SaveTicker</SelectItem>
-                    <SelectItem value="FINNHUB">Finnhub</SelectItem>
-                    <SelectItem value="ALPHA_VANTAGE">Alpha Vantage</SelectItem>
-                    <SelectItem value="NAVER">네이버</SelectItem>
-                    <SelectItem value="YOUTUBE">YouTube</SelectItem>
-                    <SelectItem value="TELEGRAM">텔레그램</SelectItem>
-                    <SelectItem value="DART">DART</SelectItem>
-                    <SelectItem value="MANUAL">수동 등록</SelectItem>
+                    {Object.entries(sourceLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={includeHidden}
-                    onChange={(e) => {
-                      setIncludeHidden(e.target.checked);
+                    onCheckedChange={(checked) => {
+                      setIncludeHidden(checked === true);
                       setPage(0);
                     }}
-                    className="h-4 w-4 rounded border-slate-300"
                   />
                   <span className="text-sm text-muted-foreground">숨김 포함</span>
                 </label>
