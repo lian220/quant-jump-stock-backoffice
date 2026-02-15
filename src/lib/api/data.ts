@@ -51,14 +51,14 @@ export async function collectEconomicData(
   startDate?: string,
   endDate?: string,
 ): Promise<CollectionResponse> {
-  return apiClient.authPost<CollectionResponse>('/api/v1/economic-data/collections', {
+  return apiClient.authPost<CollectionResponse>('/api/v1/admin/economic-data/collections', {
     startDate,
     endDate,
   });
 }
 
 export async function getEconomicDataStatus(): Promise<DataStatusResponse> {
-  return apiClient.get<DataStatusResponse>('/api/v1/economic-data/status');
+  return apiClient.get<DataStatusResponse>('/api/v1/admin/economic-data/status');
 }
 
 // === 분석 API ===
@@ -67,7 +67,7 @@ export async function runTechnicalAnalysis(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/analyses/technical', {
+  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/technical', {
     startDate,
     endDate,
   });
@@ -77,18 +77,18 @@ export async function runSentimentAnalysis(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/analyses/sentiment', {
+  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/sentiment', {
     startDate,
     endDate,
   });
 }
 
 export async function runParallelAnalysis(): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/analyses/parallel');
+  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/parallel');
 }
 
 export async function getAnalysisStatus(): Promise<AnalysisStatusResponse> {
-  return apiClient.get<AnalysisStatusResponse>('/api/v1/analyses/status');
+  return apiClient.get<AnalysisStatusResponse>('/api/v1/admin/analyses/status');
 }
 
 // === Vertex AI 예측 API ===
@@ -102,7 +102,7 @@ export interface VertexAIPredictionResponse {
 }
 
 export async function triggerVertexAIPrediction(): Promise<VertexAIPredictionResponse> {
-  return apiClient.authPost<VertexAIPredictionResponse>('/api/v1/vertex-ai/predict');
+  return apiClient.authPost<VertexAIPredictionResponse>('/api/v1/admin/vertex-ai/predict');
 }
 
 // === 종목 추천 API ===
@@ -111,7 +111,7 @@ export async function triggerStockRecommendation(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/analyses/recommendation', {
+  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/recommendation', {
     startDate,
     endDate,
   });
