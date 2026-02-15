@@ -31,31 +31,31 @@ export interface SchedulerActionResponse {
 // === API 함수 ===
 
 export async function getSchedulerStatus(): Promise<SchedulerStatus> {
-  return apiClient.authGet<SchedulerStatus>('/api/v1/scheduler/status');
+  return apiClient.authGet<SchedulerStatus>('/api/v1/admin/scheduler/status');
 }
 
 export async function getSchedules(): Promise<Record<string, ScheduleInfo>> {
-  return apiClient.authGet<Record<string, ScheduleInfo>>('/api/v1/scheduler/schedules');
+  return apiClient.authGet<Record<string, ScheduleInfo>>('/api/v1/admin/scheduler/schedules');
 }
 
 export async function pauseSchedule(triggerName: string): Promise<SchedulerActionResponse> {
   return apiClient.authPost<SchedulerActionResponse>(
-    `/api/v1/scheduler/schedules/${triggerName}/pause`,
+    `/api/v1/admin/scheduler/schedules/${triggerName}/pause`,
   );
 }
 
 export async function resumeSchedule(triggerName: string): Promise<SchedulerActionResponse> {
   return apiClient.authPost<SchedulerActionResponse>(
-    `/api/v1/scheduler/schedules/${triggerName}/resume`,
+    `/api/v1/admin/scheduler/schedules/${triggerName}/resume`,
   );
 }
 
 export async function startScheduler(): Promise<SchedulerActionResponse> {
-  return apiClient.authPost<SchedulerActionResponse>('/api/v1/scheduler/start');
+  return apiClient.authPost<SchedulerActionResponse>('/api/v1/admin/scheduler/start');
 }
 
 export async function stopScheduler(): Promise<SchedulerActionResponse> {
-  return apiClient.authPost<SchedulerActionResponse>('/api/v1/scheduler/stop');
+  return apiClient.authPost<SchedulerActionResponse>('/api/v1/admin/scheduler/stop');
 }
 
 // === 유틸리티 상수 ===
