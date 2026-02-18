@@ -90,7 +90,7 @@ export default function DataPage() {
   const [recoStartDate, setRecoStartDate] = useState('');
   const [recoEndDate, setRecoEndDate] = useState('');
   const [backtestStrategyId, setBacktestStrategyId] = useState('');
-  const [backtestPeriodDays, setBacktestPeriodDays] = useState('365');
+  const [backtestPeriodDays, setBacktestPeriodDays] = useState('1460');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // 작업 로그
@@ -665,7 +665,7 @@ export default function DataPage() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      전략 ID 미입력 시 PUBLISHED 상태의 전체 전략을 실행합니다. 기본 기간: 365일.
+                      전략 ID 미입력 시 PUBLISHED 전체 전략 실행. 기본 1460일(4년).
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <Button
