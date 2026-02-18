@@ -3,6 +3,7 @@
 import React from 'react';
 import { Sidebar } from '@/components/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 import { redirect } from 'next/navigation';
 
 interface DashboardLayoutProps {
@@ -28,9 +29,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <Sidebar />
-      <main className="pl-72">{children}</main>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-slate-100">
+        <Sidebar />
+        <main className="md:pl-72">{children}</main>
+      </div>
+    </SidebarProvider>
   );
 }

@@ -44,6 +44,8 @@ import {
   getAnalysisStatus,
   triggerVertexAIPrediction,
   triggerStockRecommendation,
+  runAdminBacktestAll,
+  runAdminBacktestByStrategy,
 } from '@/lib/api/data';
 import type { DataStatusResponse, AnalysisStatusResponse } from '@/lib/api/data';
 import {
@@ -87,6 +89,8 @@ export default function DataPage() {
   const [analysisEndDate, setAnalysisEndDate] = useState('');
   const [recoStartDate, setRecoStartDate] = useState('');
   const [recoEndDate, setRecoEndDate] = useState('');
+  const [backtestStrategyId, setBacktestStrategyId] = useState('');
+  const [backtestPeriodDays, setBacktestPeriodDays] = useState('1460');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // 작업 로그
@@ -275,6 +279,47 @@ export default function DataPage() {
       addLog('종목 추천', res.success ? 'success' : 'error', res.message);
     } catch {
       addLog('종목 추천', 'error', '종목 추천 요청에 실패했습니다.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRunBacktestAll = async () => {
+    try {
+      setActionLoading('backtest-all');
+      const res = await runAdminBacktestAll(
+        backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
+      );
+      addLog(
+        '전체 전략 백테스트',
+        res.totalRequested ? 'success' : 'error',
+        res.message || `${res.totalRequested}개 전략 백테스트 요청`,
+      );
+    } catch {
+      addLog('전체 전략 백테스트', 'error', '전체 백테스트 실행에 실패했습니다.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRunBacktestSingle = async () => {
+    if (!backtestStrategyId) {
+      addLog('전략 백테스트', 'error', '전략 ID를 입력해주세요.');
+      return;
+    }
+    try {
+      setActionLoading('backtest-single');
+      const res = await runAdminBacktestByStrategy(
+        parseInt(backtestStrategyId),
+        backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
+      );
+      addLog(
+        `전략 #${backtestStrategyId} 백테스트`,
+        res.requestId ? 'success' : 'error',
+        res.message || `전략 ${res.strategyName} 백테스트 요청 완료`,
+      );
+    } catch {
+      addLog(`전략 #${backtestStrategyId} 백테스트`, 'error', '백테스트 실행에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -585,6 +630,73 @@ export default function DataPage() {
                   </div>
                 </CardContent>
               </Card>
+              {/* 전략 백테스트 실행 */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
+                      <BarChart3 className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">전략 백테스트</CardTitle>
+                      <CardDescription>CANONICAL 백테스트 수동 실행</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="mb-1.5 text-xs">전략 ID (특정 전략)</Label>
+                        <Input
+                          type="number"
+                          placeholder="비우면 전체 전략"
+                          value={backtestStrategyId}
+                          onChange={(e) => setBacktestStrategyId(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-1.5 text-xs">기간 (일)</Label>
+                        <Input
+                          type="number"
+                          value={backtestPeriodDays}
+                          onChange={(e) => setBacktestPeriodDays(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      전략 ID 미입력 시 PUBLISHED 전체 전략 실행. 기본 1460일(4년).
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={handleRunBacktestSingle}
+                        disabled={actionLoading !== null || !backtestStrategyId}
+                      >
+                        {actionLoading === 'backtest-single' ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Play className="mr-2 h-4 w-4" />
+                        )}
+                        단일 전략 실행
+                      </Button>
+                      <Button
+                        onClick={handleRunBacktestAll}
+                        disabled={actionLoading !== null}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {actionLoading === 'backtest-all' ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Zap className="mr-2 h-4 w-4" />
+                        )}
+                        전체 전략 실행
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* 경제 데이터 수집 */}
               <Card>
                 <CardHeader>
