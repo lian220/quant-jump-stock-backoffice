@@ -116,3 +116,45 @@ export async function triggerStockRecommendation(
     endDate,
   });
 }
+
+// === 관리자 백테스트 API ===
+
+export interface AdminBacktestResponse {
+  success: boolean;
+  message: string;
+  strategyId?: number;
+  strategyName?: string;
+  requestId?: string;
+  totalRequested?: number;
+  results?: Array<{
+    strategyId: number;
+    strategyName: string;
+    requestId: string;
+    status: string;
+  }>;
+}
+
+export async function runAdminBacktestAll(
+  periodDays?: number,
+  benchmark?: string,
+  initialCapital?: number,
+): Promise<AdminBacktestResponse> {
+  return apiClient.authPost<AdminBacktestResponse>('/api/v1/admin/backtest/run-all', {
+    periodDays,
+    benchmark,
+    initialCapital,
+  });
+}
+
+export async function runAdminBacktestByStrategy(
+  strategyId: number,
+  periodDays?: number,
+  benchmark?: string,
+  initialCapital?: number,
+): Promise<AdminBacktestResponse> {
+  return apiClient.authPost<AdminBacktestResponse>(`/api/v1/admin/backtest/run/${strategyId}`, {
+    periodDays,
+    benchmark,
+    initialCapital,
+  });
+}
