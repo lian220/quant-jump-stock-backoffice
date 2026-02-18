@@ -26,6 +26,18 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Get secrets from Secret Manager
+        run: |
+          gcloud secrets versions access latest --secret=qjs-backoffice-env > .env.prod
+
+      - name: Load environment variables
+        run: |
+          set -a
+          source .env.prod
+          set +a
+          echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL" >> $GITHUB_ENV
+
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
@@ -41,7 +53,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ secrets.API_BASE_URL }}
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -49,8 +62,8 @@ jobs:
           service: qjs-backoffice
           image: ${{ env.AR_REPO }}/qjs-backoffice:latest
           region: ${{ env.REGION }}
-          flags: "--allow-unauthenticated --memory=512Mi --cpu=1 --min-instances=0 --max-instances=2 --port=3000"
+          flags: "--allow-unauthenticated --memory=512Mi --cpu=1 --min-instances=0 --max-instances=2 --port=4000"
           env_vars: |
             NODE_ENV=production
-            API_URL=${{ secrets.API_BASE_URL }}
-            NEXT_PUBLIC_API_URL=${{ secrets.API_BASE_URL }}
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
