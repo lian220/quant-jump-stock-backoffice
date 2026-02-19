@@ -6,14 +6,14 @@
 
 | Feature | Status | Priority |
 |---------|--------|----------|
-| [Admin Dashboard](./admin-dashboard.md) | Draft | P0 |
-| [Scheduler](./scheduler.md) | Draft | P0 |
-| [Analysis](./analysis.md) | Draft | P1 |
-| [ML Models](./ml-models.md) | Draft | P1 |
-| [Users](./users.md) | Draft | P1 |
-| [Economic Data](./economic-data.md) | Draft | P2 |
-| [Stocks](./stocks.md) | Draft | P2 |
-| [Reports](./reports.md) | Draft | P2 |
+| [Admin Dashboard](./관리자_대시보드.md) | Draft | P0 |
+| [Scheduler](./스케줄러.md) | Draft | P0 |
+| [Analysis](./분석.md) | Draft | P1 |
+| [ML Models](./머신러닝_모델.md) | Draft | P1 |
+| [Users](./사용자.md) | Draft | P1 |
+| [Economic Data](./경제_데이터.md) | Draft | P2 |
+| [Stocks](./종목.md) | Draft | P2 |
+| [Reports](./리포트.md) | Draft | P2 |
 
 ## Page Structure
 
