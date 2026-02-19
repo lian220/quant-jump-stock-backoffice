@@ -51,10 +51,13 @@ export async function collectEconomicData(
   startDate?: string,
   endDate?: string,
 ): Promise<CollectionResponse> {
-  return apiClient.authPost<CollectionResponse>('/api/v1/admin/economic-data/collections', {
-    startDate,
-    endDate,
-  });
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const query = params.toString();
+  return apiClient.authPost<CollectionResponse>(
+    `/api/v1/admin/economic-data/collections${query ? `?${query}` : ''}`,
+  );
 }
 
 export async function getEconomicDataStatus(): Promise<DataStatusResponse> {
@@ -67,24 +70,39 @@ export async function runTechnicalAnalysis(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/technical', {
-    startDate,
-    endDate,
-  });
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const query = params.toString();
+  return apiClient.authPost<AnalysisResponse>(
+    `/api/v1/admin/analyses/technical${query ? `?${query}` : ''}`,
+  );
 }
 
 export async function runSentimentAnalysis(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/sentiment', {
-    startDate,
-    endDate,
-  });
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const query = params.toString();
+  return apiClient.authPost<AnalysisResponse>(
+    `/api/v1/admin/analyses/sentiment${query ? `?${query}` : ''}`,
+  );
 }
 
-export async function runParallelAnalysis(): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/parallel');
+export async function runParallelAnalysis(
+  startDate?: string,
+  endDate?: string,
+): Promise<AnalysisResponse> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const query = params.toString();
+  return apiClient.authPost<AnalysisResponse>(
+    `/api/v1/admin/analyses/parallel${query ? `?${query}` : ''}`,
+  );
 }
 
 export async function getAnalysisStatus(): Promise<AnalysisStatusResponse> {
@@ -111,10 +129,13 @@ export async function triggerStockRecommendation(
   startDate?: string,
   endDate?: string,
 ): Promise<AnalysisResponse> {
-  return apiClient.authPost<AnalysisResponse>('/api/v1/admin/analyses/recommendation', {
-    startDate,
-    endDate,
-  });
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const query = params.toString();
+  return apiClient.authPost<AnalysisResponse>(
+    `/api/v1/admin/analyses/recommendation${query ? `?${query}` : ''}`,
+  );
 }
 
 // === 관리자 백테스트 API ===

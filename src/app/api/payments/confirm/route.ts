@@ -66,9 +66,7 @@ export async function POST(request: NextRequest) {
 
     // 결제 승인 성공 - 여기서 데이터베이스에 결제 정보를 저장할 수 있습니다
     console.log('결제 승인 성공:', {
-      paymentKey: responseData.paymentKey,
       orderId: responseData.orderId,
-      amount: responseData.totalAmount,
       method: responseData.method,
       status: responseData.status,
     });

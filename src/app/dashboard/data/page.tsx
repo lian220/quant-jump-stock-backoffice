@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import {
   Database,
   Play,
@@ -147,9 +148,12 @@ export default function DataPage() {
       setSchedulerActionLoading('start');
       const res = await startScheduler();
       addLog('스케줄러 시작', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('스케줄러가 시작되었습니다.');
+      else toast.error(`스케줄러 시작 실패: ${res.message}`);
       await loadScheduler();
     } catch {
       addLog('스케줄러 시작', 'error', '스케줄러 시작에 실패했습니다.');
+      toast.error('스케줄러 시작에 실패했습니다.');
     } finally {
       setSchedulerActionLoading(null);
     }
@@ -161,9 +165,12 @@ export default function DataPage() {
       setSchedulerActionLoading('stop');
       const res = await stopScheduler();
       addLog('스케줄러 중지', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('스케줄러가 중지되었습니다.');
+      else toast.error(`스케줄러 중지 실패: ${res.message}`);
       await loadScheduler();
     } catch {
       addLog('스케줄러 중지', 'error', '스케줄러 중지에 실패했습니다.');
+      toast.error('스케줄러 중지에 실패했습니다.');
     } finally {
       setSchedulerActionLoading(null);
     }
@@ -174,9 +181,12 @@ export default function DataPage() {
       setSchedulerActionLoading(triggerName);
       const res = await pauseSchedule(triggerName);
       addLog(`${triggerName} 일시중지`, res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success(`${triggerName} 일시중지 완료`);
+      else toast.error(`일시중지 실패: ${res.message}`);
       await loadScheduler();
     } catch {
       addLog(`${triggerName} 일시중지`, 'error', '스케줄 일시중지에 실패했습니다.');
+      toast.error('스케줄 일시중지에 실패했습니다.');
     } finally {
       setSchedulerActionLoading(null);
     }
@@ -187,9 +197,12 @@ export default function DataPage() {
       setSchedulerActionLoading(triggerName);
       const res = await resumeSchedule(triggerName);
       addLog(`${triggerName} 재개`, res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success(`${triggerName} 재개 완료`);
+      else toast.error(`재개 실패: ${res.message}`);
       await loadScheduler();
     } catch {
       addLog(`${triggerName} 재개`, 'error', '스케줄 재개에 실패했습니다.');
+      toast.error('스케줄 재개에 실패했습니다.');
     } finally {
       setSchedulerActionLoading(null);
     }
@@ -204,8 +217,11 @@ export default function DataPage() {
         collectEndDate || undefined,
       );
       addLog('경제 데이터 수집', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('경제 데이터 수집 요청 완료');
+      else toast.error(`경제 데이터 수집 실패: ${res.message}`);
     } catch {
       addLog('경제 데이터 수집', 'error', '경제 데이터 수집 요청에 실패했습니다.');
+      toast.error('경제 데이터 수집 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -219,8 +235,11 @@ export default function DataPage() {
         analysisEndDate || undefined,
       );
       addLog('기술적 분석', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('기술적 분석 요청 완료');
+      else toast.error(`기술적 분석 실패: ${res.message}`);
     } catch {
       addLog('기술적 분석', 'error', '기술적 분석 요청에 실패했습니다.');
+      toast.error('기술적 분석 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -234,8 +253,11 @@ export default function DataPage() {
         analysisEndDate || undefined,
       );
       addLog('감성 분석', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('감성 분석 요청 완료');
+      else toast.error(`감성 분석 실패: ${res.message}`);
     } catch {
       addLog('감성 분석', 'error', '감성 분석 요청에 실패했습니다.');
+      toast.error('감성 분석 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -244,10 +266,16 @@ export default function DataPage() {
   const handleRunParallel = async () => {
     try {
       setActionLoading('parallel');
-      const res = await runParallelAnalysis();
+      const res = await runParallelAnalysis(
+        analysisStartDate || undefined,
+        analysisEndDate || undefined,
+      );
       addLog('병렬 분석', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('병렬 분석 요청 완료 (기술적 + 감성)');
+      else toast.error(`병렬 분석 실패: ${res.message}`);
     } catch {
       addLog('병렬 분석', 'error', '병렬 분석 요청에 실패했습니다.');
+      toast.error('병렬 분석 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -262,8 +290,11 @@ export default function DataPage() {
         res.success ? 'success' : 'error',
         res.message + (res.estimatedTime ? ` (예상: ${res.estimatedTime})` : ''),
       );
+      if (res.success) toast.success('Vertex AI 예측 요청 완료');
+      else toast.error(`Vertex AI 예측 실패: ${res.message}`);
     } catch {
       addLog('Vertex AI 예측', 'error', 'Vertex AI 예측 요청에 실패했습니다.');
+      toast.error('Vertex AI 예측 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -277,8 +308,11 @@ export default function DataPage() {
         recoEndDate || undefined,
       );
       addLog('종목 추천', res.success ? 'success' : 'error', res.message);
+      if (res.success) toast.success('종목 추천 요청 완료');
+      else toast.error(`종목 추천 실패: ${res.message}`);
     } catch {
       addLog('종목 추천', 'error', '종목 추천 요청에 실패했습니다.');
+      toast.error('종목 추천 요청에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -290,13 +324,17 @@ export default function DataPage() {
       const res = await runAdminBacktestAll(
         backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
       );
+      const isSuccess = !!res.totalRequested;
       addLog(
         '전체 전략 백테스트',
-        res.totalRequested ? 'success' : 'error',
+        isSuccess ? 'success' : 'error',
         res.message || `${res.totalRequested}개 전략 백테스트 요청`,
       );
+      if (isSuccess) toast.success(`${res.totalRequested}개 전략 백테스트 요청 완료`);
+      else toast.error('전체 백테스트 실행에 실패했습니다.');
     } catch {
       addLog('전체 전략 백테스트', 'error', '전체 백테스트 실행에 실패했습니다.');
+      toast.error('전체 백테스트 실행에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -305,6 +343,7 @@ export default function DataPage() {
   const handleRunBacktestSingle = async () => {
     if (!backtestStrategyId) {
       addLog('전략 백테스트', 'error', '전략 ID를 입력해주세요.');
+      toast.error('전략 ID를 입력해주세요.');
       return;
     }
     try {
@@ -313,13 +352,17 @@ export default function DataPage() {
         parseInt(backtestStrategyId),
         backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
       );
+      const isSuccess = !!res.requestId;
       addLog(
         `전략 #${backtestStrategyId} 백테스트`,
-        res.requestId ? 'success' : 'error',
+        isSuccess ? 'success' : 'error',
         res.message || `전략 ${res.strategyName} 백테스트 요청 완료`,
       );
+      if (isSuccess) toast.success(`전략 #${backtestStrategyId} 백테스트 요청 완료`);
+      else toast.error('백테스트 실행에 실패했습니다.');
     } catch {
       addLog(`전략 #${backtestStrategyId} 백테스트`, 'error', '백테스트 실행에 실패했습니다.');
+      toast.error('백테스트 실행에 실패했습니다.');
     } finally {
       setActionLoading(null);
     }
@@ -560,8 +603,8 @@ export default function DataPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <p className="text-xs text-muted-foreground">
-                      Kafka를 통해 Data Engine으로 요청되며, 실행에 3~5분 소요됩니다. GCP 환경에서만
-                      실제 예측이 수행됩니다.
+                      Pub/Sub을 통해 Data Engine으로 요청되며, 실행에 3~5분 소요됩니다. GCP
+                      환경에서만 실제 예측이 수행됩니다.
                     </p>
                     <Button
                       onClick={handleTriggerVertexAI}
@@ -796,7 +839,7 @@ export default function DataPage() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      날짜 미지정 시 기본 분석 범위가 적용됩니다. Kafka로 비동기 요청됩니다.
+                      날짜 미지정 시 기본 분석 범위가 적용됩니다. Pub/Sub으로 비동기 요청됩니다.
                     </p>
 
                     <div className="grid grid-cols-2 gap-3">
