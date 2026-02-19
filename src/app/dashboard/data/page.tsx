@@ -321,20 +321,28 @@ export default function DataPage() {
   const handleRunBacktestAll = async () => {
     try {
       setActionLoading('backtest-all');
+      toast.loading('전체 전략 백테스트 실행 중...', { id: 'backtest-all' });
+
       const res = await runAdminBacktestAll(
         backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
       );
-      const isSuccess = !!res.totalRequested;
-      addLog(
-        '전체 전략 백테스트',
-        isSuccess ? 'success' : 'error',
-        res.message || `${res.totalRequested}개 전략 백테스트 요청`,
-      );
-      if (isSuccess) toast.success(`${res.totalRequested}개 전략 백테스트 요청 완료`);
-      else toast.error('전체 백테스트 실행에 실패했습니다.');
-    } catch {
+      const count = res.triggered ?? res.totalRequested ?? 0;
+      const message = res.message ?? `${count}개 전략 백테스트 요청됨`;
+
+      addLog('전체 전략 백테스트', count >= 0 ? 'success' : 'error', message);
+
+      if (count >= 0) {
+        toast.success('전체 전략 백테스트 실행 중', {
+          id: 'backtest-all',
+          description: `${count}개 전략에 대한 백테스트가 시작되었습니다.`,
+          duration: 5000,
+        });
+      } else {
+        toast.error('백테스트 요청 실패', { id: 'backtest-all' });
+      }
+    } catch (_error) {
       addLog('전체 전략 백테스트', 'error', '전체 백테스트 실행에 실패했습니다.');
-      toast.error('전체 백테스트 실행에 실패했습니다.');
+      toast.error('전체 백테스트 실행에 실패했습니다.', { id: 'backtest-all' });
     } finally {
       setActionLoading(null);
     }
@@ -348,21 +356,35 @@ export default function DataPage() {
     }
     try {
       setActionLoading('backtest-single');
+      toast.loading(`전략 #${backtestStrategyId} 백테스트 실행 중...`, {
+        id: 'backtest-single',
+      });
+
       const res = await runAdminBacktestByStrategy(
         parseInt(backtestStrategyId),
         backtestPeriodDays ? parseInt(backtestPeriodDays) : undefined,
       );
-      const isSuccess = !!res.requestId;
-      addLog(
-        `전략 #${backtestStrategyId} 백테스트`,
-        isSuccess ? 'success' : 'error',
-        res.message || `전략 ${res.strategyName} 백테스트 요청 완료`,
-      );
-      if (isSuccess) toast.success(`전략 #${backtestStrategyId} 백테스트 요청 완료`);
-      else toast.error('백테스트 실행에 실패했습니다.');
-    } catch {
+      const ok = !!res.requestId;
+      const message =
+        res.message ??
+        (ok
+          ? `백테스트 요청됨 (${res.startDate ?? ''} ~ ${res.endDate ?? ''})`
+          : '백테스트 요청 실패');
+
+      addLog(`전략 #${backtestStrategyId} 백테스트`, ok ? 'success' : 'error', message);
+
+      if (ok) {
+        toast.success(`전략 #${backtestStrategyId} 백테스트 실행 중`, {
+          id: 'backtest-single',
+          description: `Request ID: ${res.requestId?.slice(0, 8)}... | ${res.startDate} ~ ${res.endDate}`,
+          duration: 5000,
+        });
+      } else {
+        toast.error('백테스트 요청 실패', { id: 'backtest-single' });
+      }
+    } catch (_error) {
       addLog(`전략 #${backtestStrategyId} 백테스트`, 'error', '백테스트 실행에 실패했습니다.');
-      toast.error('백테스트 실행에 실패했습니다.');
+      toast.error('백테스트 실행에 실패했습니다.', { id: 'backtest-single' });
     } finally {
       setActionLoading(null);
     }
