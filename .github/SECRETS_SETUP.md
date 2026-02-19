@@ -67,5 +67,5 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ## 관련 문서
 
 - **상세 설정 가이드**: [Frontend Secrets 설정](../../quant-jump-stock-frontend/.github/SECRETS_SETUP.md)
-- **전체 배포 가이드**: Backend 저장소의 `/docs/technical/implemented/gcp-deployment.md`
+- **전체 배포 가이드**: Backend 저장소의 `/docs/technical/implemented/구글클라우드플랫폼_배포.md`
 - **Backend 설정**: [Backend Secrets 설정](../../quant-jump-stock-backend/.github/SECRETS_SETUP.md)
