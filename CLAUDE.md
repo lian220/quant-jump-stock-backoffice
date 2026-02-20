@@ -11,10 +11,10 @@ Backoffice는 Frontend와 동일한 기술 스택을 사용합니다.
 
 ### 포트
 ```bash
-# 개발 서버 (포트 4000)
+# 개발 서버 (포트 4010)
 pnpm dev
 
-# 프로덕션 (포트 4000)
+# 프로덕션 (포트 4010)
 pnpm start
 ```
 
@@ -31,7 +31,7 @@ pnpm start
 ### 명령어
 ```bash
 pnpm install     # 의존성 설치
-pnpm dev         # 개발 서버 (포트 4000)
+pnpm dev         # 개발 서버 (포트 4010)
 pnpm build       # 프로덕션 빌드
 pnpm start       # 프로덕션 실행
 pnpm lint        # 린트 검사

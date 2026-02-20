@@ -7,7 +7,7 @@ export const seoConfig: SeoConfigProps = {
   defaultDescription:
     'AI 기반 퀀트 트레이딩 관리 시스템. 실시간 시장 분석, 종목 추천, 자동 매매 시스템을 관리합니다.',
   defaultKeywords: 'Quant Jump, 퀀트 트레이딩, AI 주식 분석, 종목 추천, 자동 매매, 관리자 콘솔',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:4000',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:4010',
   siteName: 'Quant Jump Stock Admin',
   defaultImage: '/og-image.jpg',
   twitterUsername: '@quantjump',
