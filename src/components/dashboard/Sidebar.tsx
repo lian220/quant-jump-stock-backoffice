@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,6 +21,7 @@ import {
   Newspaper,
   FileText,
   FolderOpen,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,7 +60,15 @@ const menuItems: MenuItem[] = [
   },
   { icon: Bell, label: '알림 관리', href: '/dashboard/notifications' },
   { icon: Database, label: '데이터 관리', href: '/dashboard/data' },
-  { icon: Settings, label: '설정', href: '/dashboard/settings' },
+  {
+    icon: Settings,
+    label: '설정',
+    href: '/dashboard/settings',
+    subItems: [
+      { label: '일반 설정', href: '/dashboard/settings', icon: Settings },
+      { label: '티어 설정', href: '/dashboard/settings/tier-config', icon: Layers },
+    ],
+  },
 ];
 
 /** 사이드바 내부 콘텐츠 (데스크톱/모바일 공용) */
@@ -67,16 +76,18 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
   const pathname = usePathname();
   const { user, signOut } = useAuth();
 
-  const isNewsPath = pathname?.startsWith('/dashboard/news');
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(
-    isNewsPath ? '/dashboard/news' : null,
-  );
+  const getInitialSubMenu = useCallback((): string | null => {
+    if (pathname?.startsWith('/dashboard/news')) return '/dashboard/news';
+    if (pathname?.startsWith('/dashboard/settings')) return '/dashboard/settings';
+    return null;
+  }, [pathname]);
+
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(getInitialSubMenu);
 
   useEffect(() => {
-    if (isNewsPath) {
-      setOpenSubMenu('/dashboard/news');
-    }
-  }, [isNewsPath]);
+    const active = getInitialSubMenu();
+    if (active) setOpenSubMenu(active);
+  }, [getInitialSubMenu]);
 
   const toggleSubMenu = (href: string) => {
     setOpenSubMenu((prev) => (prev === href ? null : href));

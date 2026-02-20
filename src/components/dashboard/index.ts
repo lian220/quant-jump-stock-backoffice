@@ -4,3 +4,4 @@ export { StatCard } from './StatCard';
 export { RevenueChart } from './RevenueChart';
 export { UserChart } from './UserChart';
 export { RecentPayments } from './RecentPayments';
+export { UserTierModal } from './UserTierModal';
