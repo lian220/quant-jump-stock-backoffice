@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Shield, Filter, Loader2 } from 'lucide-react';
+import { Search, Shield, Filter, Loader2, CreditCard } from 'lucide-react';
 import { Header } from '@/components/dashboard';
+import { UserTierModal } from '@/components/dashboard/UserTierModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -24,16 +25,19 @@ import {
 } from '@/components/ui/select';
 import {
   getUsers,
+  getUserTier,
   statusLabels,
   roleLabels,
   categoryLabels,
   riskLabels,
   type AdminUser,
   type AdminUserStats,
+  type AdminUserTierInfo,
 } from '@/lib/api/users';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userTiers, setUserTiers] = useState<Record<number, AdminUserTierInfo>>({});
   const [stats, setStats] = useState<AdminUserStats>({
     total: 0,
     active: 0,
@@ -42,6 +46,13 @@ export default function UsersPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 티어 변경 모달 상태
+  const [tierModalUser, setTierModalUser] = useState<{
+    id: number;
+    userLoginId: string;
+    tier: string;
+  } | null>(null);
 
   // 필터/페이징 상태
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +79,18 @@ export default function UsersPage() {
       setStats(res.stats);
       setTotalPages(res.totalPages);
       setTotalElements(res.total);
+
+      // 유저 티어 병렬 조회
+      const tierEntries = await Promise.allSettled(
+        res.users.map((u) => getUserTier(u.id).then((t) => ({ id: u.id, tier: t }))),
+      );
+      const tierMap: Record<number, AdminUserTierInfo> = {};
+      tierEntries.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          tierMap[result.value.id] = result.value.tier;
+        }
+      });
+      setUserTiers(tierMap);
     } catch (err) {
       setError(err instanceof Error ? err.message : '회원 목록을 불러오지 못했습니다.');
     } finally {
@@ -108,6 +131,17 @@ export default function UsersPage() {
     if (status === 'ACTIVE') return 'default';
     if (status === 'SUSPENDED') return 'destructive';
     return 'secondary';
+  };
+
+  const getTierVariant = (tier: string): 'default' | 'secondary' | 'outline' => {
+    if (tier === 'PREMIUM' || tier === 'PREMIUM_YEARLY') return 'default';
+    return 'secondary';
+  };
+
+  const tierLabels: Record<string, string> = {
+    FREE: '무료',
+    PREMIUM: '프리미엄',
+    PREMIUM_YEARLY: '프리미엄 연간',
   };
 
   return (
@@ -207,6 +241,7 @@ export default function UsersPage() {
                     <TableHead>사용자</TableHead>
                     <TableHead>상태</TableHead>
                     <TableHead>역할</TableHead>
+                    <TableHead>티어</TableHead>
                     <TableHead>로그인 방식</TableHead>
                     <TableHead>투자 성향</TableHead>
                     <TableHead>가입일</TableHead>
@@ -215,70 +250,96 @@ export default function UsersPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={7} className="h-24 text-center">
                         <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
                       </TableCell>
                     </TableRow>
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                         사용자가 없습니다.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                              {(user.name ?? user.email ?? '?').charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-medium">{user.name || '-'}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {user.email || '-'}
+                    users.map((user) => {
+                      const tierInfo = userTiers[user.id];
+                      const currentTier = tierInfo?.tier ?? 'FREE';
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                {(user.name ?? user.email ?? '?').charAt(0)}
+                              </div>
+                              <div>
+                                <div className="font-medium">{user.name || '-'}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {user.email || '-'}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(user.status)}>
-                            {statusLabels[user.status] ?? user.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            {user.role === 'ADMIN' && <Shield className="h-3 w-3 text-primary" />}
-                            <span className="text-sm">{roleLabels[user.role] ?? user.role}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {user.oauthProvider ?? '이메일'}
-                        </TableCell>
-                        <TableCell>
-                          {user.preferences ? (
-                            <div className="flex flex-wrap gap-1">
-                              {user.preferences.investmentCategories.slice(0, 2).map((cat) => (
-                                <Badge key={cat} variant="outline" className="text-xs">
-                                  {categoryLabels[cat] ?? cat}
-                                </Badge>
-                              ))}
-                              {user.preferences.riskTolerance && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {riskLabels[user.preferences.riskTolerance] ??
-                                    user.preferences.riskTolerance}
-                                </Badge>
-                              )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusVariant(user.status)}>
+                              {statusLabels[user.status] ?? user.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {user.role === 'ADMIN' && <Shield className="h-3 w-3 text-primary" />}
+                              <span className="text-sm">{roleLabels[user.role] ?? user.role}</span>
                             </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">미설정</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(user.createdAt)}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={getTierVariant(currentTier)}>
+                                {tierLabels[currentTier] ?? currentTier}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() =>
+                                  setTierModalUser({
+                                    id: user.id,
+                                    userLoginId: user.userId,
+                                    tier: currentTier,
+                                  })
+                                }
+                              >
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                변경
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {user.oauthProvider ?? '이메일'}
+                          </TableCell>
+                          <TableCell>
+                            {user.preferences ? (
+                              <div className="flex flex-wrap gap-1">
+                                {user.preferences.investmentCategories.slice(0, 2).map((cat) => (
+                                  <Badge key={cat} variant="outline" className="text-xs">
+                                    {categoryLabels[cat] ?? cat}
+                                  </Badge>
+                                ))}
+                                {user.preferences.riskTolerance && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {riskLabels[user.preferences.riskTolerance] ??
+                                      user.preferences.riskTolerance}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">미설정</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(user.createdAt)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -312,6 +373,19 @@ export default function UsersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 티어 변경 모달 */}
+      {tierModalUser && (
+        <UserTierModal
+          userId={tierModalUser.id}
+          currentTier={tierModalUser.tier}
+          userLoginId={tierModalUser.userLoginId}
+          onClose={() => setTierModalUser(null)}
+          onSuccess={(info) => {
+            setUserTiers((prev) => ({ ...prev, [tierModalUser.id]: info }));
+          }}
+        />
+      )}
     </>
   );
 }

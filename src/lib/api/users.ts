@@ -2,6 +2,21 @@ import { apiClient } from './client';
 
 // --- 타입 ---
 
+export interface AdminUserTierInfo {
+  userId: number;
+  userLoginId: string;
+  tier: string;
+  startedAt: string | null;
+  expiresAt: string | null;
+  backtestCountToday: number;
+  activeSubscriptionCount: number;
+}
+
+export interface UpdateUserTierRequest {
+  tier: string;
+  expiresAt?: string | null;
+}
+
 export interface AdminUserPreferences {
   investmentCategories: string[];
   markets: string[];
@@ -53,6 +68,17 @@ export async function getUsers(params: UserListParams = {}): Promise<UserListRes
     search: params.search || undefined,
     status: params.status || undefined,
   });
+}
+
+export async function getUserTier(userId: number): Promise<AdminUserTierInfo> {
+  return apiClient.authGet<AdminUserTierInfo>(`/api/v1/admin/users/${userId}/tier`);
+}
+
+export async function updateUserTier(
+  userId: number,
+  request: UpdateUserTierRequest,
+): Promise<AdminUserTierInfo> {
+  return apiClient.authPatch<AdminUserTierInfo>(`/api/v1/admin/users/${userId}/tier`, request);
 }
 
 // --- 표시용 상수 ---
