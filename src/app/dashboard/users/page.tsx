@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import {
   getUsers,
-  getUserTier,
+  getUserTiersBatch,
   statusLabels,
   roleLabels,
   categoryLabels,
@@ -34,6 +34,7 @@ import {
   type AdminUserStats,
   type AdminUserTierInfo,
 } from '@/lib/api/users';
+import { tierLabels, type Tier } from '@/lib/api/tier-config';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -51,7 +52,7 @@ export default function UsersPage() {
   const [tierModalUser, setTierModalUser] = useState<{
     id: number;
     userLoginId: string;
-    tier: string;
+    tier: Tier;
   } | null>(null);
 
   // 필터/페이징 상태
@@ -80,17 +81,16 @@ export default function UsersPage() {
       setTotalPages(res.totalPages);
       setTotalElements(res.total);
 
-      // 유저 티어 병렬 조회
-      const tierEntries = await Promise.allSettled(
-        res.users.map((u) => getUserTier(u.id).then((t) => ({ id: u.id, tier: t }))),
-      );
-      const tierMap: Record<number, AdminUserTierInfo> = {};
-      tierEntries.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          tierMap[result.value.id] = result.value.tier;
-        }
-      });
-      setUserTiers(tierMap);
+      // 유저 티어 배치 조회 (단일 API 호출)
+      const userIds = res.users.map((u) => u.id);
+      if (userIds.length > 0) {
+        const tierList = await getUserTiersBatch(userIds);
+        const tierMap: Record<number, AdminUserTierInfo> = {};
+        tierList.forEach((info) => {
+          tierMap[info.userId] = info;
+        });
+        setUserTiers(tierMap);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '회원 목록을 불러오지 못했습니다.');
     } finally {
@@ -133,15 +133,9 @@ export default function UsersPage() {
     return 'secondary';
   };
 
-  const getTierVariant = (tier: string): 'default' | 'secondary' | 'outline' => {
+  const getTierVariant = (tier: Tier): 'default' | 'secondary' | 'outline' => {
     if (tier === 'PREMIUM' || tier === 'PREMIUM_YEARLY') return 'default';
     return 'secondary';
-  };
-
-  const tierLabels: Record<string, string> = {
-    FREE: '무료',
-    PREMIUM: '프리미엄',
-    PREMIUM_YEARLY: '프리미엄 연간',
   };
 
   return (
@@ -263,7 +257,7 @@ export default function UsersPage() {
                   ) : (
                     users.map((user) => {
                       const tierInfo = userTiers[user.id];
-                      const currentTier = tierInfo?.tier ?? 'FREE';
+                      const currentTier: Tier = tierInfo?.tier ?? 'FREE';
                       return (
                         <TableRow key={user.id}>
                           <TableCell>

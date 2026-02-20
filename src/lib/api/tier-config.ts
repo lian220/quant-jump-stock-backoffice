@@ -1,9 +1,13 @@
 import { apiClient } from './client';
 
+// --- 공통 티어 타입 ---
+
+export type Tier = 'FREE' | 'PREMIUM' | 'PREMIUM_YEARLY';
+
 // --- 타입 ---
 
 export interface TierConfiguration {
-  tier: string;
+  tier: Tier;
   maxSubscriptionCount: number;
   maxBacktestDaily: number;
   maxBacktestPerStrategy: number;
@@ -38,13 +42,13 @@ export async function updateTierConfiguration(
 
 // --- 표시용 상수 ---
 
-export const tierLabels: Record<string, string> = {
+export const tierLabels: Record<Tier, string> = {
   FREE: '무료',
   PREMIUM: '프리미엄',
   PREMIUM_YEARLY: '프리미엄 연간',
 };
 
-export const tierColors: Record<string, string> = {
+export const tierColors: Record<Tier, string> = {
   FREE: 'bg-gray-500',
   PREMIUM: 'bg-emerald-500',
   PREMIUM_YEARLY: 'bg-purple-500',

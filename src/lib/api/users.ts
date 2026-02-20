@@ -1,11 +1,12 @@
 import { apiClient } from './client';
+import { type Tier } from './tier-config';
 
 // --- 타입 ---
 
 export interface AdminUserTierInfo {
   userId: number;
   userLoginId: string;
-  tier: string;
+  tier: Tier;
   startedAt: string | null;
   expiresAt: string | null;
   backtestCountToday: number;
@@ -13,7 +14,7 @@ export interface AdminUserTierInfo {
 }
 
 export interface UpdateUserTierRequest {
-  tier: string;
+  tier: Tier;
   expiresAt?: string | null;
 }
 
@@ -72,6 +73,13 @@ export async function getUsers(params: UserListParams = {}): Promise<UserListRes
 
 export async function getUserTier(userId: number): Promise<AdminUserTierInfo> {
   return apiClient.authGet<AdminUserTierInfo>(`/api/v1/admin/users/${userId}/tier`);
+}
+
+export async function getUserTiersBatch(userIds: number[]): Promise<AdminUserTierInfo[]> {
+  if (userIds.length === 0) return [];
+  return apiClient.authGet<AdminUserTierInfo[]>('/api/v1/admin/users/tiers/batch', {
+    userIds: userIds.join(','),
+  });
 }
 
 export async function updateUserTier(

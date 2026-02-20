@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2, Save, RefreshCw } from 'lucide-react';
 import { Header } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export default function TierConfigPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConfigs = async () => {
+  const fetchConfigs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -60,11 +60,14 @@ export default function TierConfigPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchConfigs();
-  }, []);
+  }, [fetchConfigs]);
+
+  const tiersRef = useRef(tiers);
+  tiersRef.current = tiers;
 
   const updateEditing = (
     tierValue: string,
@@ -81,16 +84,20 @@ export default function TierConfigPage() {
   };
 
   const handleSave = async (tierValue: string) => {
+    const state = tiersRef.current.find((t) => t.config.tier === tierValue);
+    if (!state) return;
+    const editingSnapshot = { ...state.editing };
+
     setTiers((prev) =>
       prev.map((t) => (t.config.tier === tierValue ? { ...t, saving: true, error: null } : t)),
     );
     try {
-      const state = tiers.find((t) => t.config.tier === tierValue);
-      if (!state) return;
-      const updated = await updateTierConfiguration(tierValue, state.editing);
+      const updated = await updateTierConfiguration(tierValue, editingSnapshot);
       setTiers((prev) =>
         prev.map((t) =>
-          t.config.tier === tierValue ? { ...t, config: updated, saving: false, saved: true } : t,
+          t.config.tier === tierValue
+            ? { ...t, config: updated, saving: false, saved: true, error: null }
+            : t,
         ),
       );
     } catch (err) {

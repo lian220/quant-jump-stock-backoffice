@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -76,19 +76,18 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
   const pathname = usePathname();
   const { user, signOut } = useAuth();
 
-  const isNewsPath = pathname?.startsWith('/dashboard/news');
-  const isSettingsPath = pathname?.startsWith('/dashboard/settings');
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(
-    isNewsPath ? '/dashboard/news' : isSettingsPath ? '/dashboard/settings' : null,
-  );
+  const getInitialSubMenu = useCallback((): string | null => {
+    if (pathname?.startsWith('/dashboard/news')) return '/dashboard/news';
+    if (pathname?.startsWith('/dashboard/settings')) return '/dashboard/settings';
+    return null;
+  }, [pathname]);
+
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(getInitialSubMenu);
 
   useEffect(() => {
-    if (isNewsPath) {
-      setOpenSubMenu('/dashboard/news');
-    } else if (isSettingsPath) {
-      setOpenSubMenu('/dashboard/settings');
-    }
-  }, [isNewsPath, isSettingsPath]);
+    const active = getInitialSubMenu();
+    if (active) setOpenSubMenu(active);
+  }, [getInitialSubMenu]);
 
   const toggleSubMenu = (href: string) => {
     setOpenSubMenu((prev) => (prev === href ? null : href));
