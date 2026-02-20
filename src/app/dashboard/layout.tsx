@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import { redirect } from 'next/navigation';
+import { Toaster } from 'sonner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="min-h-screen bg-slate-100">
         <Sidebar />
         <main className="md:pl-72">{children}</main>
+        <Toaster position="top-right" richColors />
       </div>
     </SidebarProvider>
   );

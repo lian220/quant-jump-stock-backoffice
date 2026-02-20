@@ -55,12 +55,13 @@ async function proxyRequest(
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10010';
     console.error(`Proxy error [${request.method} ${backendPath}]:`, error);
     const message =
       error instanceof DOMException && error.name === 'TimeoutError'
         ? '백엔드 서버 응답 시간이 초과되었습니다.'
-        : '백엔드 서버에 연결할 수 없습니다.';
-    return NextResponse.json({ error: message }, { status: 503 });
+        : `백엔드 서버에 연결할 수 없습니다. (${backendUrl}) Core API가 실행 중인지 확인하세요.`;
+    return NextResponse.json({ error: message, message }, { status: 503 });
   }
 }
 

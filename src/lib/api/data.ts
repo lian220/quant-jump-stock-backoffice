@@ -140,13 +140,32 @@ export async function triggerStockRecommendation(
 
 // === 관리자 백테스트 API ===
 
+/** 단일 전략 백테스트 응답 (POST /api/v1/admin/backtest/run/{id}) */
+export interface AdminBacktestRunResult {
+  strategyId: number;
+  requestId: string;
+  startDate: string;
+  endDate: string;
+}
+
+/** 전체 전략 백테스트 응답 (POST /api/v1/admin/backtest/run-all) */
+export interface AdminBacktestRunAllResult {
+  triggered: number;
+  strategyIds: number[];
+}
+
+/** 하위 호환용 (run-all 시 totalRequested 등) */
 export interface AdminBacktestResponse {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   strategyId?: number;
   strategyName?: string;
   requestId?: string;
+  startDate?: string;
+  endDate?: string;
   totalRequested?: number;
+  triggered?: number;
+  strategyIds?: number[];
   results?: Array<{
     strategyId: number;
     strategyName: string;
