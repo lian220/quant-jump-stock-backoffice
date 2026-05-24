@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <Header title="통계" />
+      <Header title="분석 현황" />
 
       <div className="p-6">
         {/* Period Selector */}

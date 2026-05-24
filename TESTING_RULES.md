@@ -1,16 +1,14 @@
-# Backoffice 테스트 규칙
+# Backoffice 테스트 규칙 (서비스 특화)
+
+> **공통 규칙은 SSOT인 [../docs/testing/테스트_규칙.md](../docs/testing/테스트_규칙.md)를 참조한다.**
+> 이 문서는 Backoffice 특화 사항만 기록한다.
 
 ## 실행 환경
 
 - **개발 테스트**: `pnpm dev` (핫 리로드, 코드 수정 즉시 반영)
 - **통합 테스트**: Docker 재빌드 (`./start.sh --build`)
 - 통합 시작: 루트에서 `./start.sh --dev --build` (Backend Docker + Backoffice 핫 리로드)
-
-## 테스트 절차
-
-1. **테스트 플랜 작성**: 테스트 전 플랜 문서 작성
-2. **E2E 화면 테스트 필수**: Playwright MCP로 http://localhost:4000 에서 실제 브라우저 검증
-3. **테스트 결과 보고**: 완료 후 사용자에게 결과 보고 + 결과 문서 작성
+- **포트**: 4010
 
 ## E2E 테스트 대상 페이지
 

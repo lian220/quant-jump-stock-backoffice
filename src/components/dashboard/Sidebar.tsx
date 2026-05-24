@@ -39,11 +39,14 @@ interface MenuItem {
   label: string;
   href: string;
   subItems?: SubItem[];
+  /** 미구현 메뉴는 disabled + 배지 표시 */
+  disabled?: boolean;
+  badge?: string;
 }
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: '대시보드', href: '/dashboard' },
-  { icon: Users, label: '회원 관리', href: '/dashboard/users' },
+  { icon: Users, label: '사용자 관리', href: '/dashboard/users' },
   { icon: Target, label: '전략 관리', href: '/dashboard/strategies' },
   { icon: BarChart3, label: '종목 관리', href: '/dashboard/stocks' },
   { icon: TrendingUp, label: '종목 추천', href: '/dashboard/recommendations' },
@@ -58,7 +61,13 @@ const menuItems: MenuItem[] = [
       { label: '카테고리 관리', href: '/dashboard/news-categories', icon: FolderOpen },
     ],
   },
-  { icon: Bell, label: '알림 관리', href: '/dashboard/notifications' },
+  {
+    icon: Bell,
+    label: '알림 관리',
+    href: '/dashboard/notifications',
+    disabled: true,
+    badge: '준비 중',
+  },
   { icon: Database, label: '데이터 관리', href: '/dashboard/data' },
   {
     icon: Settings,
@@ -105,8 +114,9 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
           className="rounded-xl"
         />
         <div>
-          <h1 className="text-lg font-bold text-white">Alpha Foundry</h1>
-          <p className="text-xs text-slate-500">Admin Console</p>
+          {/* 브랜드 표시 — 페이지 h1은 Header에서 단일 사용. 사이드바는 시각적 브랜드만. */}
+          <p className="text-lg font-bold text-white">Alpha Foundry</p>
+          <p className="text-xs text-slate-400">Admin Console</p>
         </div>
       </div>
 
@@ -128,11 +138,35 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
           const isExactDashboard = item.href === '/dashboard' && pathname === '/dashboard';
           const active = isActive || isExactDashboard;
 
+          // 미구현 메뉴는 클릭 비활성화 + "준비 중" 배지
+          if (item.disabled) {
+            return (
+              <div
+                key={item.href}
+                className="group flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 opacity-60"
+                aria-disabled="true"
+                title={`${item.label} (준비 중)`}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800/60 text-slate-600">
+                  <item.icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <span className="flex-1">{item.label}</span>
+                {item.badge && (
+                  <span className="rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            );
+          }
+
           if (hasSubItems) {
             return (
               <div key={item.href}>
                 <button
                   onClick={() => toggleSubMenu(item.href)}
+                  aria-expanded={isSubMenuOpen}
+                  aria-controls={`submenu-${item.href.replace(/\//g, '-')}`}
                   className={cn(
                     'group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
                     active
@@ -152,14 +186,17 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
                   </div>
                   <span className="flex-1 text-left">{item.label}</span>
                   {isSubMenuOpen ? (
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <ChevronDown className="h-4 w-4 text-slate-400" aria-hidden="true" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-400" />
+                    <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
                   )}
                 </button>
 
                 {isSubMenuOpen && (
-                  <div className="ml-6 mt-1 space-y-1 border-l border-slate-700 pl-3">
+                  <div
+                    id={`submenu-${item.href.replace(/\//g, '-')}`}
+                    className="ml-6 mt-1 space-y-1 border-l border-slate-700 pl-3"
+                  >
                     {item.subItems!.map((sub) => {
                       const subActive =
                         pathname === sub.href ||
@@ -194,13 +231,21 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
               key={item.href}
               href={item.href}
               onClick={onNavigate}
+              aria-current={active ? 'page' : undefined}
               className={cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
+                'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
                 active
                   ? 'bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 text-emerald-400'
                   : 'text-slate-400 hover:bg-slate-800/50 hover:text-white',
               )}
             >
+              {/* 활성 상태 좌측 인디케이터 — 서브메뉴 ChevronRight과의 시각적 충돌 해소 */}
+              {active && (
+                <span
+                  className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-emerald-400"
+                  aria-hidden="true"
+                />
+              )}
               <div
                 className={cn(
                   'flex h-9 w-9 items-center justify-center rounded-lg transition-all',
@@ -209,10 +254,9 @@ const SidebarContent: React.FC<{ onNavigate?: () => void }> = ({ onNavigate }) =
                     : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700 group-hover:text-white',
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <span className="flex-1">{item.label}</span>
-              {active && <ChevronRight className="h-4 w-4 text-emerald-400" />}
             </Link>
           );
         })}

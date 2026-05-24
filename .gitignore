@@ -5,6 +5,8 @@
 /.pnp
 .pnp.*
 .yarn/*
+# pnpm 프로젝트 — npm lockfile 차단
+package-lock.json
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
