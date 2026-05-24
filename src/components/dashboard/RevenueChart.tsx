@@ -36,9 +36,9 @@ export const RevenueChart: React.FC = () => {
         <CardTitle>매출 추이</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        <div className="h-[300px]" role="img" aria-label="월별 매출 추이를 보여주는 영역 차트">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data}>
+            <AreaChart data={data} accessibilityLayer>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />

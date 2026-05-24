@@ -35,8 +35,13 @@ jobs:
           set -a
           source .env.prod
           set +a
+          # 시크릿 마스킹 (Actions 로그 노출 방지)
+          echo "::add-mask::$NEXT_PUBLIC_API_URL"
+          echo "::add-mask::$NEXT_PUBLIC_SITE_URL"
           echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" >> $GITHUB_ENV
           echo "NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL" >> $GITHUB_ENV
+          # .env.prod 파일은 빌드 컨텍스트에서 즉시 제거
+          rm -f .env.prod
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
@@ -49,7 +54,10 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.AR_REPO }}/qjs-backoffice:latest
+          # commit SHA 태그로 롤백 가능성 확보 + latest 별칭 유지
+          tags: |
+            ${{ env.AR_REPO }}/qjs-backoffice:${{ github.sha }}
+            ${{ env.AR_REPO }}/qjs-backoffice:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -60,9 +68,9 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: qjs-backoffice
-          image: ${{ env.AR_REPO }}/qjs-backoffice:latest
+          image: ${{ env.AR_REPO }}/qjs-backoffice:${{ github.sha }}
           region: ${{ env.REGION }}
-          flags: "--allow-unauthenticated --memory=512Mi --cpu=1 --min-instances=0 --max-instances=2 --port=4000"
+          flags: "--allow-unauthenticated --memory=512Mi --cpu=1 --min-instances=0 --max-instances=2 --concurrency=20 --port=4000"
           env_vars: |
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}

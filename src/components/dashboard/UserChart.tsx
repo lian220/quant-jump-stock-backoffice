@@ -21,9 +21,13 @@ export const UserChart: React.FC = () => {
         <CardTitle>사용자 현황</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        <div
+          className="h-[300px]"
+          role="img"
+          aria-label="월별 신규 가입자 및 활성 사용자 추이를 보여주는 막대 차트"
+        >
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={data} accessibilityLayer>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="month"

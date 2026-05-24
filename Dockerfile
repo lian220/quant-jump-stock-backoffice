@@ -1,18 +1,18 @@
 # Backoffice Dockerfile for Next.js
 FROM node:20-alpine AS base
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm (버전 고정으로 재현성 보장)
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 # Build stage
 FROM base AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --no-frozen-lockfile
+# Install dependencies (lockfile 강제 — CI 재현성)
+RUN pnpm install --frozen-lockfile
 
 # Copy source files
 COPY . .
@@ -20,11 +20,9 @@ COPY . .
 # 빌드 타임에 NEXT_PUBLIC_* 환경변수 주입 (클라이언트 컴포넌트에 인라인됨)
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SITE_URL
-ARG NEXT_PUBLIC_GOOGLE_ADSENSE_ID
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
-ENV NEXT_PUBLIC_GOOGLE_ADSENSE_ID=$NEXT_PUBLIC_GOOGLE_ADSENSE_ID
 
 # Build Next.js app
 RUN pnpm build

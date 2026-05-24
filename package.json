@@ -2,11 +2,13 @@
   "name": "quant-jump-stock-backoffice",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "next dev -p 4010",
     "build": "next build",
     "start": "next start -p 4010",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
     "prepare": "husky"
   },
   "dependencies": {

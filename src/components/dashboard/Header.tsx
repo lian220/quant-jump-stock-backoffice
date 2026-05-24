@@ -50,10 +50,18 @@ export const Header: React.FC<HeaderProps> = ({ title, description }) => {
         <div className="flex items-center gap-2 md:gap-3">
           {/* Search */}
           <div className="relative hidden lg:block">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <label htmlFor="global-search" className="sr-only">
+              종목, 사용자 통합 검색
+            </label>
+            <Search
+              className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
             <Input
+              id="global-search"
               type="search"
-              placeholder="종목, 회원 검색..."
+              placeholder="종목, 사용자 검색..."
+              aria-label="종목, 사용자 통합 검색"
               className="h-11 w-72 rounded-xl border-slate-200 bg-slate-50 pl-11 transition-all focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
@@ -62,11 +70,15 @@ export const Header: React.FC<HeaderProps> = ({ title, description }) => {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="알림 보기 (미확인 알림 있음)"
             className="relative h-10 w-10 rounded-xl bg-slate-50 hover:bg-slate-100 md:h-11 md:w-11"
           >
-            <Bell className="h-5 w-5 text-slate-600" />
-            <span className="absolute right-2 top-2 flex h-2.5 w-2.5 md:right-2.5 md:top-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+            <Bell className="h-5 w-5 text-slate-600" aria-hidden="true" />
+            <span
+              className="absolute right-2 top-2 flex h-2.5 w-2.5 md:right-2.5 md:top-2.5"
+              aria-hidden="true"
+            >
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75 motion-reduce:animate-none" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
             </span>
           </Button>

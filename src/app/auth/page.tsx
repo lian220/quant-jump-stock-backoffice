@@ -106,12 +106,18 @@ export default function AuthPage() {
         <div className="relative z-10 flex items-center justify-between">
           <p className="text-sm text-slate-500">&copy; {new Date().getFullYear()} Alpha Foundry</p>
           <div className="flex gap-4">
-            <span className="text-sm text-slate-500 hover:text-slate-400 cursor-pointer">
+            <a
+              href="/terms"
+              className="text-sm text-slate-500 hover:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+            >
               이용약관
-            </span>
-            <span className="text-sm text-slate-500 hover:text-slate-400 cursor-pointer">
+            </a>
+            <a
+              href="/privacy"
+              className="text-sm text-slate-500 hover:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded"
+            >
               개인정보처리방침
-            </span>
+            </a>
           </div>
         </div>
       </div>

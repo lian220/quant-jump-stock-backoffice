@@ -8,22 +8,20 @@ Backoffice 문서는 운영자 웹앱 구현 상세를 다룹니다.
 ```
 docs/
 ├── README.md
-├── architecture/         # 백오피스 구조/권한 설계
 ├── features/             # 운영 기능 명세
-├── testing/              # 테스트 전략/실행 가이드
-├── deployment/           # 배포/릴리즈 절차
-└── troubleshooting/      # 운영 이슈 대응 가이드
+├── architecture/         # (예정) 백오피스 구조/권한 설계
+├── testing/              # (예정) 테스트 전략/실행 가이드
+├── deployment/           # (예정) 배포/릴리즈 절차
+└── troubleshooting/      # (예정) 운영 이슈 대응 가이드
 ```
 
 ## 빠른 시작
 
 | 상황 | 문서 |
 |------|------|
-| 구조 이해 | [architecture](./architecture/) |
 | 기능 구현 | [features](./features/README.md) |
-| 테스트 기준 확인 | [testing](./testing/) |
-| 배포 절차 확인 | [deployment](./deployment/) |
-| 장애 대응 | [troubleshooting](./troubleshooting/) |
+| 테스트 공통 규칙 | [테스트_규칙.md](../../docs/testing/테스트_규칙.md) |
+| 배포 절차 | [GCP 배포 가이드](../../docs/infra/구글클라우드플랫폼_배포.md) |
 
 ## 섹션 안내
 
