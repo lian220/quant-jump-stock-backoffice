@@ -25,6 +25,7 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   getStocks,
+  getStock,
   createStock,
   updateStock,
   deleteStock,
@@ -158,6 +159,7 @@ export default function StocksPage() {
         industry: formData.industry || undefined,
         market: formData.market || undefined,
         isEtf: formData.isEtf,
+        leverageTicker: formData.leverageTicker || undefined,
       };
       await updateStock(editingStock.id, req);
       alert('종목이 수정되었습니다.');
@@ -205,7 +207,7 @@ export default function StocksPage() {
     }
   };
 
-  const openEditModal = (stock: StockSummary) => {
+  const openEditModal = async (stock: StockSummary) => {
     setEditingStock(stock);
     setFormData({
       ticker: stock.ticker,
@@ -214,7 +216,25 @@ export default function StocksPage() {
       market: stock.market,
       sector: stock.sector || '',
       isEtf: stock.isEtf,
+      leverageTicker: '',
     });
+    // 목록(StockSummary)엔 leverageTicker/거래소/산업이 없어 상세 조회로 보강
+    try {
+      const detail = await getStock(stock.id);
+      setFormData({
+        ticker: detail.ticker,
+        stockName: detail.stockName,
+        stockNameEn: detail.stockNameEn || '',
+        exchange: detail.exchange || '',
+        sector: detail.sector || '',
+        industry: detail.industry || '',
+        market: detail.market,
+        isEtf: detail.isEtf,
+        leverageTicker: detail.leverageTicker || '',
+      });
+    } catch (err) {
+      console.error('종목 상세 조회 실패:', err);
+    }
   };
 
   const openDesignationModal = (stock: StockSummary) => {
@@ -603,6 +623,17 @@ export default function StocksPage() {
                     ETF 여부
                   </label>
                 </div>
+              </div>
+
+              <div>
+                <Label className="mb-1.5">레버리지 티커</Label>
+                <Input
+                  value={formData.leverageTicker || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, leverageTicker: e.target.value.toUpperCase() })
+                  }
+                  placeholder="예: TQQQ (해당 종목의 레버리지 상품)"
+                />
               </div>
             </div>
 
