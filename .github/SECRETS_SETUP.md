@@ -10,7 +10,7 @@
 
 ### 1. GCP 인증
 - **GCP_PROJECT_ID**: GCP 프로젝트 ID
-- **GCP_SA_KEY**: Service Account JSON 키
+- **GCP_WIF_PROVIDER**: WIF 프로바이더 리소스 경로 (`terraform output -raw wif_provider`) — keyless 인증, 2026-08 GCP 이관으로 ~~GCP_SA_KEY~~ 삭제 대상
 
 ### 2. Backend API 연결
 - **API_BASE_URL**: `https://api.alphafoundry.app`
@@ -31,7 +31,7 @@ gh secret list --repo YOUR_USERNAME/quant-jump-stock-backoffice
 # ✓ API_BASE_URL
 # ✓ AR_REPO
 # ✓ GCP_PROJECT_ID
-# ✓ GCP_SA_KEY
+# ✓ GCP_WIF_PROVIDER
 ```
 
 ## Frontend와의 차이점
